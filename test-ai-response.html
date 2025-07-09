@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test AI Response Structure</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+        }
+        .prompt-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .prompt-header {
+            font-weight: bold;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .prompt-content {
+            background: white;
+            padding: 10px;
+            border-radius: 3px;
+            border: 1px solid #ced4da;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 AI Response Structure Test</h1>
+        <p>This page tests the OpenRouter API response structure and JSON parsing for image analysis.</p>
+
+        <!-- Image Analysis Test -->
+        <div id="image-test" class="test-section">
+            <h3>Image Analysis Test</h3>
+            <input type="file" id="image-input" accept="image/*" />
+            <button onclick="testImageAnalysis()" id="image-test-btn">Test Real AI Image Analysis</button>
+            <div id="image-results"></div>
+        </div>
+
+        <!-- Raw Response Log -->
+        <div class="test-section">
+            <h3>Raw AI Response</h3>
+            <div id="raw-response" class="log">No response yet...</div>
+        </div>
+
+        <!-- Parsed Response Log -->
+        <div class="test-section">
+            <h3>Parsed JSON Structure</h3>
+            <div id="parsed-response" class="log">No parsed response yet...</div>
+        </div>
+
+        <!-- Enhanced Prompts Display -->
+        <div class="test-section">
+            <h3>Enhanced Prompts</h3>
+            <div id="enhanced-prompts">No enhanced prompts yet...</div>
+        </div>
+
+        <!-- Debug Log -->
+        <div class="test-section">
+            <h3>Debug Log</h3>
+            <div id="debug-log" class="log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script type="module">
+        const OPENROUTER_API_KEY = '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';
+        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const VISION_MODEL = 'qwen/qwen2.5-vl-32b-instruct:free';
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('debug-log');
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logElement.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`${prefix} ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').textContent = '';
+            document.getElementById('raw-response').textContent = 'No response yet...';
+            document.getElementById('parsed-response').textContent = 'No parsed response yet...';
+            document.getElementById('enhanced-prompts').innerHTML = 'No enhanced prompts yet...';
+        }
+
+        // Test image analysis with detailed response logging
+        window.testImageAnalysis = async function() {
+            const fileInput = document.getElementById('image-input');
+            const button = document.getElementById('image-test-btn');
+            const results = document.getElementById('image-results');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select an image file first');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            button.disabled = true;
+            button.textContent = 'Analyzing...';
+            results.innerHTML = '<p>🔄 Analyzing image with real AI...</p>';
+            
+            try {
+                log(`Starting image analysis for: ${file.name} (${file.size} bytes)`);
+                
+                // Convert to base64
+                const base64Image = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                log('Image converted to base64, making API request...');
+
+                // Create the exact prompt that the AI service uses
+                const systemPrompt = `You are an expert image analyst and prompt engineer. Your task is to analyze images and create detailed prompts optimized for AI image generation systems like ChatGPT, DALL-E, Midjourney, and Stable Diffusion.
+
+ANALYSIS REQUIREMENTS:
+1. VISUAL ANALYSIS: Examine composition, lighting, colors, style, subject matter, and technical aspects
+2. STYLE IDENTIFICATION: Determine the specific artistic or photographic style
+3. PROMPT OPTIMIZATION: Create prompts that will help AI systems understand and recreate the image
+4. TECHNICAL SPECIFICATIONS: Include camera settings, lighting details, and quality descriptors
+5. RETURN CLEAN JSON: Provide only valid JSON without markdown formatting or extra text
+
+Return JSON in this exact format:
+{
+  "description": "Clear 100-150 word description of this image's visual content, style, and key elements",
+  "detectedStyle": "Specific style classification (e.g., Portrait Photography, Digital Art, Oil Painting, etc.)",
+  "suggestedTags": ["descriptive-tag1", "style-tag2", "mood-tag3", "subject-tag4", "quality-tag5"],
+  "textElements": "Any visible text or 'None detected'",
+  "colorPalette": "Brief description of the main colors and color scheme",
+  "lightingAnalysis": "Simple description of the lighting style and mood",
+  "enhancedPrompts": [
+    {
+      "id": "photo_1",
+      "style": "photographic",
+      "prompt": "Professional photograph recreating this image: [detailed description], shot with DSLR camera using 85mm lens at f/2.8, [specific lighting], high resolution, sharp focus, professional color grading, award-winning photography",
+      "description": "Professional photography style optimized for ChatGPT"
+    },
+    {
+      "id": "art_1",
+      "style": "artistic",
+      "prompt": "Fine art painting recreating this image: [detailed subject description], painted in [specific medium], masterful brushwork, museum quality artwork, artistic interpretation",
+      "description": "Fine art style optimized for ChatGPT"
+    },
+    {
+      "id": "cinema_1",
+      "style": "cinematic",
+      "prompt": "Cinematic scene recreating this image: [detailed scene description], filmed with professional cinema camera, dramatic composition, movie poster aesthetic",
+      "description": "Cinematic style optimized for ChatGPT"
+    },
+    {
+      "id": "digital_1",
+      "style": "digital_art",
+      "prompt": "Digital artwork recreating this image: [detailed subject description], created with professional digital art software, 8K ultra high resolution, trending on ArtStation",
+      "description": "Digital art style optimized for ChatGPT"
+    }
+  ]
+}`;
+
+                const userPrompt = `Analyze this image carefully and create 4 detailed prompts optimized for ChatGPT and OpenAI systems. Each prompt should be 150-200 words and designed to help ChatGPT understand and recreate this image effectively.
+
+Focus on:
+- Detailed visual description
+- Technical specifications
+- Style and mood
+- Composition and lighting
+- Quality indicators
+
+Return ONLY the JSON response with no additional text or formatting.`;
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'PromptShare AI Vision Test',
+                    },
+                    body: JSON.stringify({
+                        model: VISION_MODEL,
+                        messages: [
+                            {
+                                role: 'system',
+                                content: systemPrompt
+                            },
+                            {
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'text',
+                                        text: userPrompt
+                                    },
+                                    {
+                                        type: 'image_url',
+                                        image_url: {
+                                            url: base64Image
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        max_tokens: 2000,
+                        temperature: 0.7
+                    })
+                });
+
+                log(`Vision API Response Status: ${response.status} ${response.statusText}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content || 'No content';
+                    
+                    log('Raw AI response received');
+                    
+                    // Display raw response
+                    document.getElementById('raw-response').textContent = content;
+                    
+                    try {
+                        // Try to extract and parse JSON
+                        const jsonMatch = content.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            const analysisResult = JSON.parse(jsonMatch[0]);
+                            
+                            // Display parsed response
+                            document.getElementById('parsed-response').textContent = JSON.stringify(analysisResult, null, 2);
+                            
+                            // Display enhanced prompts
+                            const promptsContainer = document.getElementById('enhanced-prompts');
+                            if (analysisResult.enhancedPrompts && Array.isArray(analysisResult.enhancedPrompts)) {
+                                promptsContainer.innerHTML = `
+                                    <h4>Found ${analysisResult.enhancedPrompts.length} Enhanced Prompts:</h4>
+                                    ${analysisResult.enhancedPrompts.map((prompt, index) => `
+                                        <div class="prompt-card">
+                                            <div class="prompt-header">${index + 1}. ${prompt.style} (${prompt.id})</div>
+                                            <div><strong>Description:</strong> ${prompt.description}</div>
+                                            <div class="prompt-content">${prompt.prompt}</div>
+                                        </div>
+                                    `).join('')}
+                                `;
+                                
+                                results.innerHTML = `
+                                    <div class="success">
+                                        <h4>✅ Real AI Analysis Complete!</h4>
+                                        <p><strong>Description:</strong> ${analysisResult.description || 'N/A'}</p>
+                                        <p><strong>Style:</strong> ${analysisResult.detectedStyle || 'N/A'}</p>
+                                        <p><strong>Enhanced Prompts:</strong> ${analysisResult.enhancedPrompts.length} generated</p>
+                                    </div>
+                                `;
+                                log('Image analysis completed successfully with real AI!', 'success');
+                            } else {
+                                promptsContainer.innerHTML = '<div class="warning">⚠️ No enhanced prompts found in response</div>';
+                                log('No enhanced prompts found in parsed response', 'warning');
+                            }
+                        } else {
+                            throw new Error('No JSON found in response');
+                        }
+                    } catch (parseError) {
+                        results.innerHTML = `
+                            <div class="warning">
+                                <p>⚠️ AI responded but JSON parsing failed</p>
+                                <p><strong>Parse Error:</strong> ${parseError.message}</p>
+                            </div>
+                        `;
+                        log(`JSON parsing failed: ${parseError.message}`, 'warning');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    results.innerHTML = `<p>❌ Vision API Error: ${response.status} - ${errorText}</p>`;
+                    log(`Vision API failed: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                results.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+                log(`Image analysis failed: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test Real AI Image Analysis';
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Test page loaded, ready for image analysis...');
+        });
+    </script>
+</body>
+</html>

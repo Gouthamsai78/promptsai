@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Real AI Integration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .info { background-color: #d1ecf1; border-color: #bee5eb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        button:disabled { background: #6c757d; cursor: not-allowed; }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Real AI Integration Test</h1>
+        <p>This page tests the actual OpenRouter API integration for image analysis.</p>
+
+        <!-- Environment Check -->
+        <div id="env-check" class="test-section info">
+            <h3>1. Environment Check</h3>
+            <p>Checking if OpenRouter API key is configured...</p>
+            <div id="env-results"></div>
+        </div>
+
+        <!-- API Connectivity Test -->
+        <div id="api-test" class="test-section">
+            <h3>2. API Connectivity Test</h3>
+            <button onclick="testAPIConnectivity()" id="api-test-btn">Test OpenRouter API</button>
+            <div id="api-results"></div>
+        </div>
+
+        <!-- Image Analysis Test -->
+        <div id="image-test" class="test-section">
+            <h3>3. Image Analysis Test</h3>
+            <input type="file" id="image-input" accept="image/*" />
+            <button onclick="testImageAnalysis()" id="image-test-btn">Analyze Image with Real AI</button>
+            <div id="image-results"></div>
+        </div>
+
+        <!-- Debug Log -->
+        <div class="test-section">
+            <h3>Debug Log</h3>
+            <div id="debug-log" class="log"></div>
+            <button onclick="clearLog()">Clear Log</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import environment variables (simulated)
+        const OPENROUTER_API_KEY = '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';
+        const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+        const VISION_MODEL = 'qwen/qwen2.5-vl-32b-instruct:free';
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.getElementById('debug-log');
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logElement.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(`${prefix} ${message}`);
+        }
+
+        function clearLog() {
+            document.getElementById('debug-log').textContent = '';
+        }
+
+        // 1. Environment Check
+        function checkEnvironment() {
+            const envResults = document.getElementById('env-results');
+            const envSection = document.getElementById('env-check');
+            
+            if (!OPENROUTER_API_KEY || OPENROUTER_API_KEY === 'your_api_key_here') {
+                envResults.innerHTML = '<p>❌ OpenRouter API key not configured</p>';
+                envSection.className = 'test-section error';
+                log('Environment check failed: No API key', 'error');
+                return false;
+            }
+
+            if (!OPENROUTER_API_KEY.startsWith('sk-or-v1-')) {
+                envResults.innerHTML = '<p>❌ Invalid OpenRouter API key format</p>';
+                envSection.className = 'test-section error';
+                log('Environment check failed: Invalid API key format', 'error');
+                return false;
+            }
+
+            envResults.innerHTML = `
+                <p>✅ API Key: Present (${OPENROUTER_API_KEY.substring(0, 20)}...)</p>
+                <p>✅ API URL: ${API_URL}</p>
+                <p>✅ Vision Model: ${VISION_MODEL}</p>
+            `;
+            envSection.className = 'test-section success';
+            log('Environment check passed', 'success');
+            return true;
+        }
+
+        // 2. API Connectivity Test
+        window.testAPIConnectivity = async function() {
+            const button = document.getElementById('api-test-btn');
+            const results = document.getElementById('api-results');
+            const section = document.getElementById('api-test');
+            
+            button.disabled = true;
+            button.textContent = 'Testing...';
+            results.innerHTML = '<p>Testing OpenRouter API connectivity...</p>';
+            
+            try {
+                log('Starting API connectivity test...');
+                
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'PromptShare AI Test',
+                    },
+                    body: JSON.stringify({
+                        model: 'meta-llama/llama-3.2-3b-instruct:free',
+                        messages: [
+                            {
+                                role: 'user',
+                                content: 'Say "Hello from OpenRouter!" if you can read this.'
+                            }
+                        ],
+                        max_tokens: 50,
+                        temperature: 0.7
+                    })
+                });
+
+                log(`API Response Status: ${response.status} ${response.statusText}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content || 'No content';
+                    
+                    results.innerHTML = `
+                        <p>✅ API Connection: Success</p>
+                        <p>✅ Response: ${content}</p>
+                        <p>✅ Model: ${data.model || 'Unknown'}</p>
+                    `;
+                    section.className = 'test-section success';
+                    log('API connectivity test passed', 'success');
+                } else {
+                    const errorText = await response.text();
+                    results.innerHTML = `<p>❌ API Error: ${response.status} - ${errorText}</p>`;
+                    section.className = 'test-section error';
+                    log(`API connectivity test failed: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                results.innerHTML = `<p>❌ Network Error: ${error.message}</p>`;
+                section.className = 'test-section error';
+                log(`API connectivity test failed: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Test OpenRouter API';
+            }
+        };
+
+        // 3. Image Analysis Test
+        window.testImageAnalysis = async function() {
+            const fileInput = document.getElementById('image-input');
+            const button = document.getElementById('image-test-btn');
+            const results = document.getElementById('image-results');
+            const section = document.getElementById('image-test');
+            
+            if (!fileInput.files[0]) {
+                alert('Please select an image file first');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            button.disabled = true;
+            button.textContent = 'Analyzing...';
+            results.innerHTML = '<p>Analyzing image with real AI...</p>';
+            
+            try {
+                log(`Starting image analysis for: ${file.name} (${file.size} bytes)`);
+                
+                // Convert to base64
+                const base64Image = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                log('Image converted to base64, making API request...');
+
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': window.location.origin,
+                        'X-Title': 'PromptShare AI Vision Test',
+                    },
+                    body: JSON.stringify({
+                        model: VISION_MODEL,
+                        messages: [
+                            {
+                                role: 'user',
+                                content: [
+                                    {
+                                        type: 'text',
+                                        text: 'Analyze this image and return a JSON response with: description, detectedStyle, suggestedTags (array), and enhancedPrompts (array with id, style, prompt, description for 4 styles: photographic, artistic, cinematic, digital_art).'
+                                    },
+                                    {
+                                        type: 'image_url',
+                                        image_url: {
+                                            url: base64Image
+                                        }
+                                    }
+                                ]
+                            }
+                        ],
+                        max_tokens: 2000,
+                        temperature: 0.7
+                    })
+                });
+
+                log(`Vision API Response Status: ${response.status} ${response.statusText}`);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const content = data.choices?.[0]?.message?.content || 'No content';
+                    
+                    log('Raw AI response received, attempting to parse...');
+                    
+                    try {
+                        // Try to extract JSON from the response
+                        const jsonMatch = content.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            const analysisResult = JSON.parse(jsonMatch[0]);
+                            
+                            results.innerHTML = `
+                                <div class="success">
+                                    <h4>✅ Real AI Analysis Complete!</h4>
+                                    <p><strong>Description:</strong> ${analysisResult.description || 'N/A'}</p>
+                                    <p><strong>Style:</strong> ${analysisResult.detectedStyle || 'N/A'}</p>
+                                    <p><strong>Tags:</strong> ${(analysisResult.suggestedTags || []).join(', ')}</p>
+                                    <p><strong>Enhanced Prompts:</strong> ${(analysisResult.enhancedPrompts || []).length} generated</p>
+                                    <details>
+                                        <summary>View Enhanced Prompts</summary>
+                                        <pre>${JSON.stringify(analysisResult.enhancedPrompts || [], null, 2)}</pre>
+                                    </details>
+                                </div>
+                            `;
+                            section.className = 'test-section success';
+                            log('Image analysis completed successfully with real AI!', 'success');
+                        } else {
+                            throw new Error('No JSON found in response');
+                        }
+                    } catch (parseError) {
+                        results.innerHTML = `
+                            <div class="warning">
+                                <p>⚠️ AI responded but JSON parsing failed</p>
+                                <p><strong>Raw Response:</strong></p>
+                                <pre>${content}</pre>
+                            </div>
+                        `;
+                        section.className = 'test-section warning';
+                        log(`JSON parsing failed: ${parseError.message}`, 'warning');
+                    }
+                } else {
+                    const errorText = await response.text();
+                    results.innerHTML = `<p>❌ Vision API Error: ${response.status} - ${errorText}</p>`;
+                    section.className = 'test-section error';
+                    log(`Vision API failed: ${response.status} - ${errorText}`, 'error');
+                }
+            } catch (error) {
+                results.innerHTML = `<p>❌ Error: ${error.message}</p>`;
+                section.className = 'test-section error';
+                log(`Image analysis failed: ${error.message}`, 'error');
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Analyze Image with Real AI';
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Test page loaded, checking environment...');
+            checkEnvironment();
+        });
+    </script>
+</body>
+</html>
