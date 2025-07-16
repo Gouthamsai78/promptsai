@@ -1,10 +1,12 @@
 
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import OfflineModeIndicator from './components/OfflineModeIndicator';
+import { EnvironmentChecker } from './utils/envChecker';
 import Home from './pages/Home';
 import Reels from './pages/Reels';
 import Create from './pages/Create';
@@ -13,6 +15,8 @@ import Search from './pages/Search';
 import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import Chat from './pages/Chat';
+import SmartPromptStudio from './pages/SmartPromptStudio';
+import TestSmartFeatures from './pages/TestSmartFeatures';
 import PromptTransformationDemo from './components/PromptTransformationDemo';
 import TestImageAnalysis from './components/TestImageAnalysis';
 import SimpleEnhancedPromptsTest from './components/SimpleEnhancedPromptsTest';
@@ -27,6 +31,11 @@ import TestPage from './pages/TestPage';
 
 // Component that contains all routes - must be inside AuthProvider
 const AppRoutes = () => {
+  // Log environment info on startup
+  useEffect(() => {
+    EnvironmentChecker.logEnvironmentInfo();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <Routes>
@@ -131,6 +140,16 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/smart-studio"
+          element={
+            <ProtectedRoute>
+              <OfflineModeIndicator />
+              <Navigation />
+              <SmartPromptStudio />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/transform"
@@ -193,6 +212,14 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute requireAuth={false}>
               <SimpleEnhancedPromptsTest />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/test-smart-features"
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <TestSmartFeatures />
             </ProtectedRoute>
           }
         />

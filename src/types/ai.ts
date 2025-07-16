@@ -192,6 +192,145 @@ export interface KeyboardShortcut {
   description: string;
 }
 
+// Feature 1: Intelligent Prompt Requirements Analysis Types
+
+export interface PromptRequirement {
+  id: string;
+  description: string;
+  category: 'use_case' | 'audience' | 'format' | 'tone' | 'constraints' | 'output';
+  priority: 'high' | 'medium' | 'low';
+  value: string;
+  examples?: string[];
+}
+
+export interface RequirementsAnalysisInput {
+  naturalLanguageDescription: string;
+  additionalContext?: string;
+  preferredStyle?: string;
+  targetLength?: 'short' | 'medium' | 'long';
+  complexityLevel?: 'basic' | 'intermediate' | 'advanced';
+}
+
+export interface RequirementsAnalysisResult {
+  originalDescription: string;
+  parsedRequirements: PromptRequirement[];
+  identifiedUseCase: string;
+  targetAudience: string;
+  desiredOutputFormat: string;
+  suggestedTone: string;
+  detectedConstraints: string[];
+  generatedPrompts: GeneratedPrompt[];
+  processingTime: number;
+  confidence: number;
+}
+
+export interface GeneratedPrompt {
+  id: string;
+  title: string;
+  prompt: string;
+  explanation: string;
+  addressedRequirements: string[];
+  qualityScore: number;
+  estimatedEffectiveness: number;
+  suggestedImprovements?: string[];
+  tags: string[];
+}
+
+export interface RequirementRefinement {
+  requirementId: string;
+  newValue: string;
+  reason: string;
+}
+
+// Feature 2: Voice-to-Text Types
+
+export interface VoiceRecordingState {
+  isRecording: boolean;
+  isProcessing: boolean;
+  isPaused: boolean;
+  duration: number;
+  volume: number;
+  error?: string;
+}
+
+export interface VoiceTranscriptionResult {
+  text: string;
+  confidence: number;
+  language: string;
+  isFinal: boolean;
+  alternatives?: VoiceAlternative[];
+  processingTime: number;
+}
+
+export interface VoiceAlternative {
+  text: string;
+  confidence: number;
+}
+
+export interface VoiceSettings {
+  language: string;
+  continuous: boolean;
+  interimResults: boolean;
+  maxAlternatives: number;
+  autoStop: boolean;
+  autoStopTimeout: number;
+}
+
+export interface VoiceCapabilities {
+  isSupported: boolean;
+  supportedLanguages: string[];
+  hasPermission: boolean;
+  browserSupport: {
+    webSpeechAPI: boolean;
+    mediaRecorder: boolean;
+    audioContext: boolean;
+  };
+}
+
+export interface VoiceSession {
+  id: string;
+  startTime: Date;
+  endTime?: Date;
+  totalDuration: number;
+  transcriptionResults: VoiceTranscriptionResult[];
+  finalText: string;
+  wordCount: number;
+  language: string;
+}
+
+// Combined Feature Types
+
+export interface VoiceToRequirementsResult {
+  voiceSession: VoiceSession;
+  transcription: VoiceTranscriptionResult;
+  requirementsAnalysis: RequirementsAnalysisResult;
+  combinedProcessingTime: number;
+}
+
+export interface SmartPromptCreationState {
+  mode: 'text' | 'voice' | 'hybrid';
+  voiceState: VoiceRecordingState;
+  transcriptionState: {
+    isTranscribing: boolean;
+    currentText: string;
+    finalText: string;
+    error?: string;
+  };
+  requirementsState: {
+    isAnalyzing: boolean;
+    hasAnalysis: boolean;
+    analysis?: RequirementsAnalysisResult;
+    error?: string;
+  };
+  generationState: {
+    isGenerating: boolean;
+    hasPrompts: boolean;
+    prompts: GeneratedPrompt[];
+    selectedPrompt?: GeneratedPrompt;
+    error?: string;
+  };
+}
+
 export const AI_KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
   {
     key: 'e',
@@ -228,5 +367,24 @@ export const AI_KEYBOARD_SHORTCUTS: KeyboardShortcut[] = [
     ctrlKey: true,
     action: 'select_digital',
     description: 'Select digital art style enhancement'
+  },
+  {
+    key: 'r',
+    ctrlKey: true,
+    action: 'start_voice_recording',
+    description: 'Start voice recording for prompt creation'
+  },
+  {
+    key: 'r',
+    ctrlKey: true,
+    shiftKey: true,
+    action: 'stop_voice_recording',
+    description: 'Stop voice recording'
+  },
+  {
+    key: 'a',
+    ctrlKey: true,
+    action: 'analyze_requirements',
+    description: 'Analyze prompt requirements'
   }
 ];

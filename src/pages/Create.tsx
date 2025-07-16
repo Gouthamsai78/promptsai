@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Image, Video, X, Plus, Check, FileText, Wrench, MessageCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Image, Video, X, Plus, Check, FileText, Wrench, MessageCircle, Sparkles, Mic, Brain } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { DatabaseService } from '../services/database';
 import { StorageService } from '../services/storage';
 import SmartFileUpload from '../components/SmartFileUpload';
 import ToolSubmissionForm from '../components/ToolSubmissionForm';
 import PageLayout from '../components/PageLayout';
+import AIPromptEnhancer from '../components/AIPromptEnhancer';
 
 const Create: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [activeTab, setActiveTab] = useState<'post' | 'tool'>('post');
+  const [showAIEnhancer, setShowAIEnhancer] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -30,6 +33,20 @@ const Create: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+
+  // Handle incoming prompt from Smart Prompt Studio
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.generatedPrompt && state?.fromSmartStudio) {
+      setFormData(prev => ({
+        ...prev,
+        prompt: state.generatedPrompt
+      }));
+      setShowAIEnhancer(true);
+      // Clear the state to prevent re-applying on refresh
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const addTag = () => {
     if (currentTag.trim() && !formData.tags.includes(currentTag.trim())) {
@@ -51,6 +68,16 @@ const Create: React.FC = () => {
   // Simple prompt change handler
   const handlePromptChange = (newPrompt: string) => {
     setFormData(prev => ({ ...prev, prompt: newPrompt }));
+  };
+
+  // Handle AI enhancement selection
+  const handleEnhancementSelect = (enhancement: any) => {
+    setFormData(prev => ({ ...prev, prompt: enhancement.prompt }));
+  };
+
+  // Toggle AI enhancer
+  const toggleAIEnhancer = () => {
+    setShowAIEnhancer(!showAIEnhancer);
   };
 
   const handleInputChange = (field: string, value: any) => {
@@ -299,38 +326,81 @@ const Create: React.FC = () => {
             Share your amazing AI prompts or submit useful AI tools
           </p>
 
-          {/* Step-by-step guidance */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
-            <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              🚀 Quick Start Guide with AI Enhancement
+          {/* AI-Powered Creation Options */}
+          <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-6 border border-purple-200 dark:border-purple-800">
+            <h3 className="text-lg font-semibold text-purple-900 dark:text-purple-100 mb-4">
+              🚀 AI-Powered Prompt Creation
             </h3>
-            <div className="grid md:grid-cols-3 gap-4 text-xs text-blue-800 dark:text-blue-200">
-              <div className="flex items-start space-x-2">
-                <span className="flex-shrink-0 w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-                <div>
-                  <p className="font-medium">Upload & Analyze</p>
-                  <p className="text-blue-700 dark:text-blue-300">Upload images/videos - AI will generate prompts automatically</p>
+
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
+                    <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Smart Prompt Studio</h4>
                 </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Use voice input, intelligent analysis, and AI enhancement to create professional prompts
+                </p>
+                <button
+                  onClick={() => navigate('/smart-studio')}
+                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                >
+                  <Brain className="w-4 h-4" />
+                  <span>Open Studio</span>
+                </button>
               </div>
-              <div className="flex items-start space-x-2">
-                <span className="flex-shrink-0 w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
-                <div>
-                  <p className="font-medium">Enhance Prompts</p>
-                  <p className="text-blue-700 dark:text-blue-300">Type basic ideas - AI enhances them into professional prompts</p>
+
+              <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                    <Sparkles className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white">Quick AI Enhancement</h4>
                 </div>
-              </div>
-              <div className="flex items-start space-x-2">
-                <span className="flex-shrink-0 w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-                <div>
-                  <p className="font-medium">One-Click Apply</p>
-                  <p className="text-blue-700 dark:text-blue-300">Choose AI-enhanced style and publish instantly</p>
-                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                  Enhance your prompts directly here with AI-powered improvements
+                </p>
+                <button
+                  onClick={toggleAIEnhancer}
+                  className={`w-full flex items-center justify-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
+                    showAIEnhancer
+                      ? 'bg-green-600 hover:bg-green-700 text-white'
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>{showAIEnhancer ? 'Hide Enhancer' : 'Show Enhancer'}</span>
+                </button>
               </div>
             </div>
-            <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700">
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                💡 <strong>Pro tip:</strong> Use keyboard shortcuts - Ctrl+E to enhance, Ctrl+1-4 to select styles, Ctrl+C to copy
-              </p>
+
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <h4 className="font-medium text-gray-900 dark:text-white mb-3">Quick Start Guide</h4>
+              <div className="grid md:grid-cols-3 gap-4 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-start space-x-2">
+                  <span className="flex-shrink-0 w-5 h-5 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Create with AI</p>
+                    <p>Use Smart Studio for voice input and intelligent analysis</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="flex-shrink-0 w-5 h-5 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Enhance & Refine</p>
+                    <p>Use AI enhancement to improve your prompts with style variations</p>
+                  </div>
+                </div>
+                <div className="flex items-start space-x-2">
+                  <span className="flex-shrink-0 w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                  <div>
+                    <p className="font-medium text-gray-900 dark:text-white">Upload & Publish</p>
+                    <p>Add media, fill details, and share your enhanced prompts</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -479,12 +549,32 @@ const Create: React.FC = () => {
 
               {/* Prompt */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  AI Prompt
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">
-                    (The actual prompt text that others can copy and use)
-                  </span>
-                </label>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    AI Prompt
+                    <span className="text-xs text-gray-500 dark:text-gray-400 font-normal ml-1">
+                      (The actual prompt text that others can copy and use)
+                    </span>
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/smart-studio')}
+                      className="flex items-center space-x-1 px-3 py-1 text-xs bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/40 transition-colors"
+                    >
+                      <Mic className="w-3 h-3" />
+                      <span>Voice Input</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={toggleAIEnhancer}
+                      className="flex items-center space-x-1 px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-200 dark:hover:bg-blue-900/40 transition-colors"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      <span>AI Enhance</span>
+                    </button>
+                  </div>
+                </div>
                 <textarea
                   value={formData.prompt}
                   onChange={(e) => handlePromptChange(e.target.value)}
@@ -494,8 +584,24 @@ const Create: React.FC = () => {
                   maxLength={2000}
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {formData.prompt.length}/2000 characters • For AI enhancement, visit our <a href="/chat" className="text-blue-500 hover:underline">AI Chat</a>
+                  {formData.prompt.length}/2000 characters • Use AI enhancement above or visit <a href="/smart-studio" className="text-purple-500 hover:underline">Smart Studio</a> for advanced features
                 </p>
+
+                {/* AI Enhancer Component */}
+                {showAIEnhancer && formData.prompt.trim() && (
+                  <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                    <h4 className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center space-x-2">
+                      <Sparkles className="w-4 h-4" />
+                      <span>AI Prompt Enhancement</span>
+                    </h4>
+                    <AIPromptEnhancer
+                      prompt={formData.prompt}
+                      onPromptChange={handlePromptChange}
+                      onEnhancementSelect={handleEnhancementSelect}
+                      disabled={false}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           </div>

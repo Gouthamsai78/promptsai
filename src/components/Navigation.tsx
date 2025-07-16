@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Video, Plus, Search, User, Moon, Sun, Compass, MessageCircle } from 'lucide-react';
+import { Home, Video, Plus, Search, User, Moon, Sun, Compass, MessageCircle, Sparkles } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import RealtimeNotifications from './RealtimeNotifications';
 
@@ -12,13 +12,14 @@ const Navigation: React.FC = () => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/reels', icon: Video, label: 'Reels' },
     { path: '/create', icon: Plus, label: 'Create' },
+    { path: '/smart-studio', icon: Sparkles, label: 'Smart Studio' },
     { path: '/chat', icon: MessageCircle, label: 'AI Chat' },
     { path: '/explore', icon: Compass, label: 'Explore' }
   ];
 
   const mobileNavItems = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/search', icon: Search, label: 'Search' },
+    { path: '/smart-studio', icon: Sparkles, label: 'AI Studio' },
     { path: '/create', icon: Plus, label: 'Create' },
     { path: '/chat', icon: MessageCircle, label: 'AI Chat' },
     { path: '/profile', icon: User, label: 'Profile' }
