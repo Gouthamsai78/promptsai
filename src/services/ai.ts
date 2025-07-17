@@ -109,20 +109,158 @@ export interface ImageAnalysisResult {
   enhancedPrompts: EnhancedPrompt[];
 }
 
-// Cache for enhanced prompts to avoid redundant API calls
-const promptCache = new Map<string, CacheEntry>();
-const imageCache = new Map<string, ImageCacheEntry>();
-const CACHE_EXPIRY = 30 * 60 * 1000; // 30 minutes
+// Enhanced cache configuration with size limits and TTL
+const CACHE_CONFIG = {
+  PROMPT_CACHE_MAX_SIZE: 100, // Maximum number of cached prompts
+  IMAGE_CACHE_MAX_SIZE: 50,   // Maximum number of cached images
+  CACHE_EXPIRY: 30 * 60 * 1000, // 30 minutes TTL
+  CLEANUP_INTERVAL: 5 * 60 * 1000, // Cleanup every 5 minutes
+  MAX_MEMORY_USAGE: 50 * 1024 * 1024 // 50MB max memory usage
+};
 
 interface CacheEntry {
   result: PromptEnhancementResult;
   timestamp: number;
+  accessCount: number;
+  lastAccessed: number;
+  size: number; // Estimated memory size in bytes
 }
 
 interface ImageCacheEntry {
   result: ImageAnalysisResult;
   timestamp: number;
+  accessCount: number;
+  lastAccessed: number;
+  size: number; // Estimated memory size in bytes
 }
+
+// Enhanced cache implementation with LRU and size management
+class EnhancedCache<T> {
+  private cache = new Map<string, T>();
+  private maxSize: number;
+  private cleanupInterval: NodeJS.Timeout | null = null;
+
+  constructor(maxSize: number) {
+    this.maxSize = maxSize;
+    this.startCleanupTimer();
+  }
+
+  set(key: string, value: T): void {
+    // Remove oldest entries if cache is full
+    if (this.cache.size >= this.maxSize) {
+      this.evictOldestEntries();
+    }
+
+    this.cache.set(key, value);
+  }
+
+  get(key: string): T | undefined {
+    const entry = this.cache.get(key);
+    if (entry) {
+      // Update access information for LRU
+      (entry as any).lastAccessed = Date.now();
+      (entry as any).accessCount = ((entry as any).accessCount || 0) + 1;
+    }
+    return entry;
+  }
+
+  delete(key: string): boolean {
+    return this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+
+  get size(): number {
+    return this.cache.size;
+  }
+
+  keys(): IterableIterator<string> {
+    return this.cache.keys();
+  }
+
+  values(): IterableIterator<T> {
+    return this.cache.values();
+  }
+
+  // Evict oldest entries based on LRU
+  private evictOldestEntries(): void {
+    const entries = Array.from(this.cache.entries());
+
+    // Sort by last accessed time (oldest first)
+    entries.sort((a, b) => {
+      const aTime = (a[1] as any).lastAccessed || (a[1] as any).timestamp;
+      const bTime = (b[1] as any).lastAccessed || (b[1] as any).timestamp;
+      return aTime - bTime;
+    });
+
+    // Remove oldest 25% of entries
+    const toRemove = Math.max(1, Math.floor(entries.length * 0.25));
+    for (let i = 0; i < toRemove; i++) {
+      this.cache.delete(entries[i][0]);
+    }
+
+    debugLog(`🗑️ Cache eviction: removed ${toRemove} oldest entries`);
+  }
+
+  // Clean up expired entries
+  private cleanupExpired(): void {
+    const now = Date.now();
+    let removedCount = 0;
+
+    for (const [key, entry] of this.cache.entries()) {
+      if (now - (entry as any).timestamp > CACHE_CONFIG.CACHE_EXPIRY) {
+        this.cache.delete(key);
+        removedCount++;
+      }
+    }
+
+    if (removedCount > 0) {
+      debugLog(`🧹 Cache cleanup: removed ${removedCount} expired entries`);
+    }
+  }
+
+  // Start automatic cleanup timer
+  private startCleanupTimer(): void {
+    this.cleanupInterval = setInterval(() => {
+      this.cleanupExpired();
+    }, CACHE_CONFIG.CLEANUP_INTERVAL);
+  }
+
+  // Stop cleanup timer
+  destroy(): void {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+      this.cleanupInterval = null;
+    }
+    this.clear();
+  }
+
+  // Get cache statistics
+  getStats(): { size: number; memoryUsage: number; hitRate: number } {
+    let totalSize = 0;
+    let totalAccess = 0;
+    let totalHits = 0;
+
+    for (const entry of this.cache.values()) {
+      totalSize += (entry as any).size || 0;
+      const accessCount = (entry as any).accessCount || 0;
+      totalAccess += accessCount;
+      if (accessCount > 0) totalHits++;
+    }
+
+    return {
+      size: this.cache.size,
+      memoryUsage: totalSize,
+      hitRate: totalAccess > 0 ? totalHits / totalAccess : 0
+    };
+  }
+}
+
+// Create enhanced cache instances
+const promptCache = new EnhancedCache<CacheEntry>(CACHE_CONFIG.PROMPT_CACHE_MAX_SIZE);
+const imageCache = new EnhancedCache<ImageCacheEntry>(CACHE_CONFIG.IMAGE_CACHE_MAX_SIZE);
 
 export class AIService {
   // Get API key dynamically to ensure it's always current
@@ -130,32 +268,66 @@ export class AIService {
     return import.meta.env.VITE_OPENROUTER_API_KEY;
   }
 
-  // Check if AI service is available
+  // Enhanced API key validation with security checks
+  private static validateApiKey(apiKey: string): { isValid: boolean; error?: string } {
+    // Basic presence check
+    if (!apiKey || typeof apiKey !== 'string') {
+      return { isValid: false, error: 'API key is missing or not a string' };
+    }
+
+    // Trim and check for placeholder values
+    const trimmedKey = apiKey.trim();
+    if (trimmedKey === '' || trimmedKey === 'undefined' || trimmedKey === 'null') {
+      return { isValid: false, error: 'API key is empty or contains placeholder value' };
+    }
+
+    // Check minimum length (OpenRouter keys are typically 64+ characters)
+    if (trimmedKey.length < 32) {
+      return { isValid: false, error: 'API key is too short to be valid' };
+    }
+
+    // Validate OpenRouter format
+    if (!trimmedKey.startsWith('sk-or-v1-')) {
+      return { isValid: false, error: 'API key must start with "sk-or-v1-" for OpenRouter' };
+    }
+
+    // Check for valid characters (base64-like pattern after prefix)
+    const keyBody = trimmedKey.substring(9); // Remove 'sk-or-v1-' prefix
+    const validKeyPattern = /^[A-Za-z0-9+/=_-]+$/;
+    if (!validKeyPattern.test(keyBody)) {
+      return { isValid: false, error: 'API key contains invalid characters' };
+    }
+
+    // Additional length check for the key body
+    if (keyBody.length < 20) {
+      return { isValid: false, error: 'API key body is too short' };
+    }
+
+    return { isValid: true };
+  }
+
+  // Check if AI service is available with enhanced validation
   static isAIAvailable(): boolean {
     const apiKey = this.getApiKey();
 
-    // Enhanced debugging for API key issues
-    debugLog('🔍 AI Service Debug Info:', {
+    // Production-safe debugging
+    debugLog('🔍 AI Service Availability Check:', {
       hasApiKey: !!apiKey,
       apiKeyLength: apiKey?.length || 0,
-      apiKeyPrefix: apiKey?.substring(0, 20) || 'undefined',
-      envVars: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')),
-      rawEnvValue: import.meta.env.VITE_OPENROUTER_API_KEY ? 'Present' : 'Missing',
-      envType: typeof import.meta.env.VITE_OPENROUTER_API_KEY
+      // Only show prefix in development
+      apiKeyPrefix: import.meta.env.DEV ? apiKey?.substring(0, 15) + '...' : '[REDACTED]',
+      envVarsCount: Object.keys(import.meta.env).filter(key => key.startsWith('VITE_')).length
     });
 
-    if (!apiKey || apiKey.trim() === '' || apiKey === 'undefined') {
-      debugLog('🤖 AI Service: OpenRouter API key not configured or invalid');
-      debugLog('🔍 Environment check:', {
-        VITE_OPENROUTER_API_KEY: import.meta.env.VITE_OPENROUTER_API_KEY ? 'Present' : 'Missing',
-        keyStartsWith: apiKey?.startsWith('sk-or-v1-') ? 'Valid format' : 'Invalid format'
-      });
+    if (!apiKey) {
+      debugLog('🤖 AI Service: OpenRouter API key not found in environment variables');
       return false;
     }
 
-    // Validate API key format
-    if (!apiKey.startsWith('sk-or-v1-')) {
-      debugLog('❌ Invalid OpenRouter API key format. Should start with "sk-or-v1-"');
+    // Validate API key format and security
+    const validation = this.validateApiKey(apiKey);
+    if (!validation.isValid) {
+      debugLog(`❌ AI Service: API key validation failed - ${validation.error}`);
       return false;
     }
 
@@ -485,56 +657,99 @@ export class AIService {
     }
   }
 
+  // Estimate memory size of an object
+  private static estimateSize(obj: any): number {
+    try {
+      return JSON.stringify(obj).length * 2; // Rough estimate: 2 bytes per character
+    } catch {
+      return 1024; // Default 1KB if can't stringify
+    }
+  }
+
   // Check cache for existing enhancement
   private static getCachedResult(prompt: string): PromptEnhancementResult | null {
     const key = this.getCacheKey(prompt);
-    const cached = promptCache.get(key) as CacheEntry | undefined;
+    const cached = promptCache.get(key);
 
-    if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
-      debugLog('🎯 Using cached prompt enhancement');
+    if (cached && Date.now() - cached.timestamp < CACHE_CONFIG.CACHE_EXPIRY) {
+      debugLog('🎯 Using cached prompt enhancement', {
+        key: key.substring(0, 50) + '...',
+        age: Math.round((Date.now() - cached.timestamp) / 1000) + 's',
+        accessCount: cached.accessCount
+      });
       return cached.result;
     }
 
     if (cached) {
       promptCache.delete(key); // Remove expired cache
+      debugLog('🗑️ Removed expired cache entry');
     }
 
     return null;
   }
 
-  // Cache enhancement result
+  // Cache enhancement result with size tracking
   private static cacheResult(prompt: string, result: PromptEnhancementResult): void {
     const key = this.getCacheKey(prompt);
+    const size = this.estimateSize(result);
+
     const cacheEntry: CacheEntry = {
       result,
       timestamp: Date.now(),
+      accessCount: 0,
+      lastAccessed: Date.now(),
+      size
     };
+
     promptCache.set(key, cacheEntry);
+
+    debugLog('💾 Cached prompt enhancement', {
+      key: key.substring(0, 50) + '...',
+      size: `${Math.round(size / 1024)}KB`,
+      cacheSize: promptCache.size
+    });
   }
 
   // Check cache for existing image analysis
   private static getCachedImageResult(cacheKey: string): ImageAnalysisResult | null {
     const cached = imageCache.get(cacheKey);
 
-    if (cached && Date.now() - cached.timestamp < CACHE_EXPIRY) {
-      debugLog('🎯 Using cached image analysis');
+    if (cached && Date.now() - cached.timestamp < CACHE_CONFIG.CACHE_EXPIRY) {
+      debugLog('🎯 Using cached image analysis', {
+        key: cacheKey.substring(0, 20) + '...',
+        age: Math.round((Date.now() - cached.timestamp) / 1000) + 's',
+        accessCount: cached.accessCount
+      });
       return cached.result;
     }
 
     if (cached) {
       imageCache.delete(cacheKey); // Remove expired cache
+      debugLog('🗑️ Removed expired image cache entry');
     }
 
     return null;
   }
 
-  // Cache image analysis result
+  // Cache image analysis result with size tracking
   private static cacheImageResult(cacheKey: string, result: ImageAnalysisResult): void {
+    const size = this.estimateSize(result);
+
     const cacheEntry: ImageCacheEntry = {
       result,
       timestamp: Date.now(),
+      accessCount: 0,
+      lastAccessed: Date.now(),
+      size
     };
+
     imageCache.set(cacheKey, cacheEntry);
+
+    debugLog('💾 Cached image analysis', {
+      key: cacheKey.substring(0, 20) + '...',
+      size: `${Math.round(size / 1024)}KB`,
+      cacheSize: imageCache.size
+    });
   }
 
   // Detect universal prompt category for Galaxy.AI style enhancement
@@ -1044,7 +1259,25 @@ IMPORTANT: If the user's request seems like they want to create an image generat
 
     } catch (error: any) {
       debugLog('❌ Template-enhanced chat response failed:', error.message);
-      throw new Error(`Chat response failed: ${error.message}`);
+
+      // Provide user-friendly error messages based on error type
+      let userMessage = 'Chat response failed. Please try again.';
+
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        userMessage = 'Unable to connect to AI service. Please check your internet connection and try again.';
+      } else if (error.message.includes('rate limit') || error.message.includes('429')) {
+        userMessage = 'AI service is currently busy. Please wait a moment and try again.';
+      } else if (error.message.includes('unauthorized') || error.message.includes('401')) {
+        userMessage = 'AI service authentication failed. Please check your API key configuration.';
+      } else if (error.message.includes('timeout')) {
+        userMessage = 'AI service request timed out. Please try again with a shorter message.';
+      }
+
+      // Return a graceful fallback response instead of throwing
+      return {
+        response: `I apologize, but I encountered an error while processing your request: ${userMessage}\n\nYou can still use the app's other features while I'm having trouble with AI responses.`,
+        error: error.message
+      };
     }
   }
 
@@ -1080,7 +1313,23 @@ IMPORTANT: If the user's request seems like they want to create an image generat
 
     } catch (error: any) {
       debugLog('❌ Chat response failed:', error.message);
-      return `I apologize, but I encountered an error while processing your request: ${error.message}. Please try again.`;
+
+      // Provide context-aware error messages
+      let errorMessage = 'I encountered an unexpected error. Please try again.';
+
+      if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'I\'m having trouble connecting to my AI service. Please check your internet connection and try again.';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage = 'I\'m currently experiencing high demand. Please wait a moment and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Your request took too long to process. Please try again with a shorter message.';
+      } else if (error.message.includes('unauthorized')) {
+        errorMessage = 'There\'s an authentication issue with the AI service. Please contact support if this persists.';
+      } else if (error.message.includes('model') || error.message.includes('404')) {
+        errorMessage = 'The AI model is temporarily unavailable. Please try again later.';
+      }
+
+      return `I apologize, but ${errorMessage}\n\nIn the meantime, you can still use other features of PromptShare like browsing content, managing your profile, and uploading media.`;
     }
   }
 
@@ -2044,18 +2293,73 @@ Make it appealing to AI art enthusiasts and creators.`;
     debugLog('🗑️ AI prompt and image caches cleared');
   }
 
-  // Get cache statistics
-  static getCacheStats(): { promptCache: { size: number; keys: string[] }; imageCache: { size: number; keys: string[] } } {
+  // Get enhanced cache statistics
+  static getCacheStats(): {
+    promptCache: {
+      size: number;
+      memoryUsage: number;
+      hitRate: number;
+      maxSize: number;
+    };
+    imageCache: {
+      size: number;
+      memoryUsage: number;
+      hitRate: number;
+      maxSize: number;
+    };
+    totalMemoryUsage: number;
+    config: typeof CACHE_CONFIG;
+  } {
+    const promptStats = promptCache.getStats();
+    const imageStats = imageCache.getStats();
+
     return {
       promptCache: {
-        size: promptCache.size,
-        keys: Array.from(promptCache.keys())
+        ...promptStats,
+        maxSize: CACHE_CONFIG.PROMPT_CACHE_MAX_SIZE
       },
       imageCache: {
-        size: imageCache.size,
-        keys: Array.from(imageCache.keys())
-      }
+        ...imageStats,
+        maxSize: CACHE_CONFIG.IMAGE_CACHE_MAX_SIZE
+      },
+      totalMemoryUsage: promptStats.memoryUsage + imageStats.memoryUsage,
+      config: CACHE_CONFIG
     };
+  }
+
+  // Cleanup method for proper resource management
+  static cleanup(): void {
+    try {
+      promptCache.destroy();
+      imageCache.destroy();
+      debugLog('✅ AI service cleanup completed');
+    } catch (error) {
+      debugLog('⚠️ Error during AI service cleanup:', error);
+    }
+  }
+
+  // Memory pressure management
+  static handleMemoryPressure(): void {
+    const stats = this.getCacheStats();
+
+    if (stats.totalMemoryUsage > CACHE_CONFIG.MAX_MEMORY_USAGE) {
+      debugLog('⚠️ Memory pressure detected, clearing caches', {
+        currentUsage: `${Math.round(stats.totalMemoryUsage / 1024 / 1024)}MB`,
+        maxUsage: `${Math.round(CACHE_CONFIG.MAX_MEMORY_USAGE / 1024 / 1024)}MB`
+      });
+
+      // Clear half of each cache
+      const promptEntries = Array.from(promptCache.keys());
+      const imageEntries = Array.from(imageCache.keys());
+
+      for (let i = 0; i < Math.floor(promptEntries.length / 2); i++) {
+        promptCache.delete(promptEntries[i]);
+      }
+
+      for (let i = 0; i < Math.floor(imageEntries.length / 2); i++) {
+        imageCache.delete(imageEntries[i]);
+      }
+    }
   }
 
   // Enhanced JSON extraction with multiple parsing strategies and validation

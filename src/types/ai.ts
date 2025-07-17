@@ -321,6 +321,7 @@ export interface SmartPromptCreationState {
     hasAnalysis: boolean;
     analysis?: RequirementsAnalysisResult;
     error?: string;
+    voiceInputText?: string; // Voice transcription text for requirements input
   };
   generationState: {
     isGenerating: boolean;

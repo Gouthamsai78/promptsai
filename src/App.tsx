@@ -2,6 +2,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { OnboardingProvider } from './contexts/OnboardingContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -239,7 +240,9 @@ function App() {
         }}
       >
         <AuthProvider>
-          <AppRoutes />
+          <OnboardingProvider>
+            <AppRoutes />
+          </OnboardingProvider>
         </AuthProvider>
       </Router>
     </ErrorBoundary>

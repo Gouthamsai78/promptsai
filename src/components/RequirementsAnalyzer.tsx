@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Brain, 
   Lightbulb, 
@@ -28,13 +28,17 @@ interface RequirementsAnalyzerProps {
   onAnalysisComplete?: (analysis: RequirementsAnalysisResult) => void;
   className?: string;
   initialDescription?: string;
+  voiceInputText?: string; // New prop for voice transcription
+  onVoiceInputReceived?: (text: string) => void; // Callback when voice input is applied
 }
 
 const RequirementsAnalyzer: React.FC<RequirementsAnalyzerProps> = ({
   onPromptGenerated,
   onAnalysisComplete,
   className = '',
-  initialDescription = ''
+  initialDescription = '',
+  voiceInputText = '',
+  onVoiceInputReceived
 }) => {
   const [description, setDescription] = useState(initialDescription);
   const [additionalContext, setAdditionalContext] = useState('');
@@ -48,6 +52,65 @@ const RequirementsAnalyzer: React.FC<RequirementsAnalyzerProps> = ({
   const [expandedPrompts, setExpandedPrompts] = useState<Set<string>>(new Set());
   const [copiedPromptId, setCopiedPromptId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [voiceInputApplied, setVoiceInputApplied] = useState(false);
+
+  // Ref to track previous voice input text
+  const prevVoiceInputTextRef = useRef<string | undefined>(undefined);
+
+  // Update description when voice input text changes
+  useEffect(() => {
+    const prevVoiceInputText = prevVoiceInputTextRef.current;
+
+    console.log('🔍 REQUIREMENTS ANALYZER: voiceInputText prop changed:', {
+      voiceInputText,
+      prevVoiceInputText,
+      hasText: !!voiceInputText,
+      trimmedLength: voiceInputText?.trim().length || 0,
+      currentDescription: description.substring(0, 50) + '...',
+      isNewVoiceInput: voiceInputText !== prevVoiceInputText
+    });
+
+    debugLog('🔍 RequirementsAnalyzer voiceInputText changed:', {
+      voiceInputText,
+      prevVoiceInputText,
+      hasText: !!voiceInputText,
+      trimmedLength: voiceInputText?.trim().length || 0,
+      currentDescription: description.substring(0, 50) + '...',
+      isNewVoiceInput: voiceInputText !== prevVoiceInputText
+    });
+
+    // Only process if this is a new voice input
+    if (voiceInputText && voiceInputText.trim() && voiceInputText !== prevVoiceInputText) {
+      const trimmedVoiceText = voiceInputText.trim();
+
+      console.log('📝 REQUIREMENTS ANALYZER: Applying NEW voice input to textarea:', trimmedVoiceText);
+      debugLog('📝 Applying NEW voice input to requirements field:', {
+        voiceText: trimmedVoiceText.substring(0, 100) + '...',
+        currentDescription: description.substring(0, 50) + '...'
+      });
+
+      // Force update the description
+      setDescription(trimmedVoiceText);
+
+      // Show visual feedback
+      setVoiceInputApplied(true);
+      setTimeout(() => setVoiceInputApplied(false), 3000);
+
+      // Call the callback to notify parent component
+      if (onVoiceInputReceived) {
+        onVoiceInputReceived(trimmedVoiceText);
+      }
+
+      // Update the ref to track this voice input
+      prevVoiceInputTextRef.current = voiceInputText;
+
+      console.log('✅ REQUIREMENTS ANALYZER: Voice input applied successfully');
+    } else if (voiceInputText && voiceInputText.trim() && voiceInputText === prevVoiceInputText) {
+      console.log('⚠️ REQUIREMENTS ANALYZER: Voice input unchanged, skipping update');
+    } else if (!voiceInputText || !voiceInputText.trim()) {
+      console.log('⚠️ REQUIREMENTS ANALYZER: Empty voice input, skipping update');
+    }
+  }, [voiceInputText]); // Only depend on voiceInputText
 
   // Validation
   const isValidInput = description.trim().length >= 10;
@@ -149,17 +212,53 @@ const RequirementsAnalyzer: React.FC<RequirementsAnalyzerProps> = ({
       <div className="space-y-4">
         {/* Main Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Describe your prompt requirements
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Describe your prompt requirements
+            </label>
+            <div className="flex items-center space-x-2">
+              {voiceInputApplied && (
+                <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <span>Voice input applied!</span>
+                </div>
+              )}
+
+              {/* Debug Test Button - Remove in production */}
+              {import.meta.env.DEV && (
+                <button
+                  onClick={() => {
+                    const testText = "This is a test voice input to verify the data flow is working correctly.";
+                    console.log('🧪 TEST: Simulating voice input:', testText);
+                    setDescription(testText);
+                    setVoiceInputApplied(true);
+                    setTimeout(() => setVoiceInputApplied(false), 3000);
+                    if (onVoiceInputReceived) {
+                      onVoiceInputReceived(testText);
+                    }
+                  }}
+                  className="text-xs px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded"
+                  title="Test voice input functionality"
+                >
+                  Test Voice Input
+                </button>
+              )}
+            </div>
+          </div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="e.g., I need a prompt that will help me write professional emails with a friendly tone for customer support..."
-            className="w-full h-32 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg 
+            className={`w-full h-32 px-4 py-3 border rounded-lg
                      bg-white dark:bg-gray-800 text-gray-900 dark:text-white
                      focus:ring-2 focus:ring-purple-500 focus:border-transparent
-                     resize-none"
+                     resize-none transition-all duration-300 ${
+                       voiceInputApplied
+                         ? 'border-green-400 dark:border-green-500 ring-2 ring-green-200 dark:ring-green-800'
+                         : 'border-gray-300 dark:border-gray-600'
+                     }`}
             maxLength={maxCharacters}
           />
           <div className="flex justify-between items-center mt-2">

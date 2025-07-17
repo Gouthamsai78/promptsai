@@ -16,39 +16,62 @@ const RealtimeNotifications: React.FC<RealtimeNotificationsProps> = ({ className
   const [showDropdown, setShowDropdown] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
 
-  // Initialize real-time service
+  // Initialize real-time service with proper cleanup
   useEffect(() => {
+    let cleanupFunctions: (() => void)[] = [];
+    let isComponentMounted = true;
+
+    const initializeRealtime = async () => {
+      if (!user?.id || !isComponentMounted) return;
+
+      try {
+        await RealtimeService.initialize(user.id);
+
+        if (!isComponentMounted) return; // Component unmounted during initialization
+
+        setIsConnected(true);
+
+        // Subscribe to notifications with proper cleanup tracking
+        const unsubscribeNotifications = RealtimeService.onNotification((notification) => {
+          if (isComponentMounted) {
+            handleNewNotification(notification);
+          }
+        });
+
+        cleanupFunctions.push(unsubscribeNotifications);
+
+        debugLog('✅ Real-time notifications initialized');
+      } catch (error: any) {
+        debugLog('❌ Failed to initialize real-time notifications:', error.message);
+        if (isComponentMounted) {
+          setIsConnected(false);
+        }
+      }
+    };
+
     if (user?.id) {
       initializeRealtime();
     }
 
+    // Cleanup function
     return () => {
-      RealtimeService.cleanup();
-    };
-  }, [user?.id]);
+      isComponentMounted = false;
 
-  const initializeRealtime = async () => {
-    if (!user?.id) return;
-
-    try {
-      await RealtimeService.initialize(user.id);
-      setIsConnected(true);
-
-      // Subscribe to notifications
-      const unsubscribeNotifications = RealtimeService.onNotification((notification) => {
-        handleNewNotification(notification);
+      // Run all cleanup functions
+      cleanupFunctions.forEach(cleanup => {
+        try {
+          cleanup();
+        } catch (error) {
+          debugLog('⚠️ Error during notification cleanup:', error);
+        }
       });
 
-      debugLog('✅ Real-time notifications initialized');
-
-      return () => {
-        unsubscribeNotifications();
-      };
-    } catch (error: any) {
-      debugLog('❌ Failed to initialize real-time notifications:', error.message);
-      setIsConnected(false);
-    }
-  };
+      // Clean up real-time service
+      RealtimeService.cleanup().catch(error => {
+        debugLog('⚠️ Error during realtime service cleanup:', error);
+      });
+    };
+  }, [user?.id]);
 
   // Handle new notification
   const handleNewNotification = (notification: NotificationData) => {

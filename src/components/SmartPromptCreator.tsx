@@ -57,6 +57,7 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
     requirementsState: {
       isAnalyzing: false,
       hasAnalysis: false,
+      voiceInputText: undefined,
     },
     generationState: {
       isGenerating: false,
@@ -173,12 +174,58 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
     if (onPromptGenerated) {
       onPromptGenerated(prompt);
     }
+    if (onPromptChange) {
+      onPromptChange(prompt);
+    }
+  };
+
+  const handlePromptInputChange = (prompt: string) => {
+    // This is specifically for setting the input prompt without triggering generation
+    setCurrentPrompt(prompt);
+    if (onPromptChange) {
+      onPromptChange(prompt);
+    }
+  };
+
+  const handleVoiceToRequirementsInput = (text: string) => {
+    // This specifically handles voice transcription going to the requirements input field
+    console.log('🎤 VOICE-TO-PROMPT FIX: Voice input received for requirements field:', text);
+    debugLog('🎤 Voice input received for requirements field:', {
+      text,
+      length: text.length,
+      trimmed: text.trim()
+    });
+
+    setState(prev => {
+      const newState = {
+        ...prev,
+        transcriptionState: {
+          ...prev.transcriptionState,
+          finalText: text
+        },
+        requirementsState: {
+          ...prev.requirementsState,
+          voiceInputText: text // Add this to pass to RequirementsAnalyzer
+        }
+      };
+
+      console.log('🔄 VOICE-TO-PROMPT FIX: Updated state with voice input:', newState.requirementsState.voiceInputText);
+      debugLog('🔄 Updated state with voice input:', {
+        voiceInputText: newState.requirementsState.voiceInputText,
+        finalText: newState.transcriptionState.finalText
+      });
+
+      return newState;
+    });
   };
 
   const handleEnhancementSelect = (enhancedPrompt: any) => {
     setCurrentPrompt(enhancedPrompt.prompt);
     if (onPromptGenerated) {
       onPromptGenerated(enhancedPrompt.prompt);
+    }
+    if (onPromptChange) {
+      onPromptChange(enhancedPrompt.prompt);
     }
   };
 
@@ -239,33 +286,56 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
 
   const renderTextMode = () => (
     <div className="space-y-6">
-      {/* Quick Voice Recording Option */}
+      {/* Voice Input Option in Text Mode */}
       {voiceCapabilities.isSupported && (
         <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-3">
               <Mic className="w-5 h-5 text-green-600 dark:text-green-400" />
               <div>
-                <h4 className="font-medium text-green-800 dark:text-green-200">Quick Voice Input</h4>
+                <h4 className="font-medium text-green-800 dark:text-green-200">Voice Input Available</h4>
                 <p className="text-sm text-green-700 dark:text-green-300">
-                  Prefer speaking? Switch to Voice Mode for full voice-to-prompt workflow
+                  Record your voice and apply it directly to the requirements field below
                 </p>
               </div>
             </div>
             <button
               onClick={() => handleModeChange('voice')}
-              className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
+              data-tour="voice-mode"
+              className="flex items-center space-x-2 px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm"
             >
               <Mic className="w-4 h-4" />
-              <span>Use Voice</span>
+              <span>Full Voice Mode</span>
             </button>
           </div>
+
+          {/* Inline Voice Recorder for Text Mode */}
+          <VoiceRecorder
+            onTranscriptionUpdate={handleVoiceTranscription}
+            onSessionComplete={handleVoiceSessionComplete}
+            onTextGenerated={(text) => {
+              // When voice recording completes in text mode, apply to requirements
+              handleVoiceToRequirementsInput(text);
+            }}
+            onApplyToEnhancer={(text) => {
+              // Apply transcribed text directly to requirements input field
+              console.log('🎤 TEXT MODE: Apply to Enhancer clicked with text:', text);
+              handleVoiceToRequirementsInput(text);
+            }}
+            className="w-full"
+            showSettings={false}
+            showApplyButton={true}
+          />
         </div>
       )}
 
       <RequirementsAnalyzer
         onPromptGenerated={handlePromptGenerated}
         onAnalysisComplete={handleRequirementsAnalysisComplete}
+        voiceInputText={state.requirementsState.voiceInputText}
+        onVoiceInputReceived={(text) => {
+          debugLog('✅ Voice input successfully applied to requirements field:', text);
+        }}
         className="w-full"
       />
       
@@ -287,11 +357,19 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
       <VoiceRecorder
         onTranscriptionUpdate={handleVoiceTranscription}
         onSessionComplete={handleVoiceSessionComplete}
-        onTextGenerated={handlePromptGenerated}
+        onTextGenerated={(text) => {
+          // When voice recording completes, set it as input for analysis
+          setState(prev => ({
+            ...prev,
+            transcriptionState: {
+              ...prev.transcriptionState,
+              finalText: text
+            }
+          }));
+        }}
         onApplyToEnhancer={(text) => {
-          // Apply transcribed text directly to prompt enhancer
-          setCurrentPrompt(text);
-          handlePromptGenerated(text);
+          // Apply transcribed text directly to requirements input field
+          handleVoiceToRequirementsInput(text);
         }}
         className="w-full"
         showApplyButton={true}
@@ -313,8 +391,12 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
 
           <RequirementsAnalyzer
             initialDescription={state.transcriptionState.finalText}
+            voiceInputText={state.requirementsState.voiceInputText}
             onPromptGenerated={handlePromptGenerated}
             onAnalysisComplete={handleRequirementsAnalysisComplete}
+            onVoiceInputReceived={(text) => {
+              debugLog('✅ Voice input successfully applied to requirements field (voice mode):', text);
+            }}
             className="w-full"
           />
         </div>
@@ -355,9 +437,8 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
               }));
             }}
             onApplyToEnhancer={(text) => {
-              // Apply transcribed text directly to prompt enhancer
-              setCurrentPrompt(text);
-              handlePromptGenerated(text);
+              // Apply transcribed text directly to requirements input field
+              handleVoiceToRequirementsInput(text);
             }}
             className="w-full"
             showSettings={false}
@@ -372,8 +453,12 @@ const SmartPromptCreator: React.FC<SmartPromptCreatorProps> = ({
           </h4>
           <RequirementsAnalyzer
             initialDescription={state.transcriptionState.finalText}
+            voiceInputText={state.requirementsState.voiceInputText}
             onPromptGenerated={handlePromptGenerated}
             onAnalysisComplete={handleRequirementsAnalysisComplete}
+            onVoiceInputReceived={(text) => {
+              debugLog('✅ Voice input successfully applied to requirements field (hybrid mode):', text);
+            }}
             className="w-full"
           />
         </div>
