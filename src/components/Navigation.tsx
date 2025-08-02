@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Video, Plus, Search, User, Moon, Sun, Compass, MessageCircle, Sparkles } from 'lucide-react';
+import { Home, Video, Plus, Search, User, Moon, Sun, Compass, MessageCircle, Sparkles, Users, Brain } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import RealtimeNotifications from './RealtimeNotifications';
 
@@ -12,17 +12,19 @@ const Navigation: React.FC = () => {
     { path: '/', icon: Home, label: 'Home' },
     { path: '/reels', icon: Video, label: 'Reels' },
     { path: '/create', icon: Plus, label: 'Create' },
-    { path: '/smart-studio', icon: Sparkles, label: 'Smart Studio' },
-    { path: '/chat', icon: MessageCircle, label: 'AI Chat' },
+    { path: '/communities', icon: Users, label: 'Communities' },
+    { path: '/ai-apps', icon: Brain, label: 'AI Apps' },
+    { path: '/messages', icon: MessageCircle, label: 'Messages' },
+    { path: '/ai-chat', icon: Sparkles, label: 'AI Chat' },
     { path: '/explore', icon: Compass, label: 'Explore' }
   ];
 
   const mobileNavItems = [
     { path: '/', icon: Home, label: 'Home' },
-    { path: '/smart-studio', icon: Sparkles, label: 'AI Studio' },
+    { path: '/communities', icon: Users, label: 'Communities' },
     { path: '/create', icon: Plus, label: 'Create' },
-    { path: '/chat', icon: MessageCircle, label: 'AI Chat' },
-    { path: '/profile', icon: User, label: 'Profile' }
+    { path: '/explore', icon: Compass, label: 'Explore' },
+    { path: '/ai-apps', icon: Brain, label: 'AI Apps' }
   ];
 
   const isActive = (path: string) => location.pathname === path;
@@ -78,15 +80,17 @@ const Navigation: React.FC = () => {
             {/* Real-time Notifications */}
             <RealtimeNotifications />
 
+            {/* Profile moved to top-right corner */}
             <Link
               to="/profile"
-              className={`p-2 rounded-lg transition-colors ${
+              className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors ${
                 isActive('/profile')
                   ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
                   : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               <User size={20} />
+              <span className="font-medium">Profile</span>
             </Link>
           </div>
         </div>
@@ -111,6 +115,20 @@ const Navigation: React.FC = () => {
           ))}
         </div>
       </nav>
+
+      {/* Mobile Profile Button - Floating */}
+      <div className="md:hidden fixed top-4 right-4 z-50">
+        <Link
+          to="/profile"
+          className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-all duration-200 ${
+            isActive('/profile')
+              ? 'bg-blue-600 text-white'
+              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+          }`}
+        >
+          <User size={24} />
+        </Link>
+      </div>
     </>
   );
 };

@@ -86,3 +86,9 @@ export interface LegacyComment {
   createdAt: string;
   likes: number;
 }
+
+// Export community types
+export * from './community';
+
+// Re-export AI types for convenience
+export * from './ai';

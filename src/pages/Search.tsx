@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search as SearchIcon, Filter, X, Sliders, Loader, User, Users } from 'lucide-react';
 import PostCard from '../components/PostCard';
 import ToolCard from '../components/ToolCard';
 import { DatabaseService } from '../services/database';
 import { Post, Tool, Profile } from '../types';
 import PageLayout from '../components/PageLayout';
+import SearchBar from '../components/SearchBar';
 
 const Search: React.FC = () => {
   const navigate = useNavigate();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [searchType, setSearchType] = useState<'all' | 'prompts' | 'tools' | 'users'>('all');
   const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'most_copied'>('newest');
   const [showFilters, setShowFilters] = useState(false);
@@ -20,10 +22,15 @@ const Search: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Load initial data
+  // Load initial data and handle URL parameters
   useEffect(() => {
     loadData();
-  }, []);
+    const queryParam = searchParams.get('q');
+    if (queryParam) {
+      setSearchTerm(queryParam);
+      performSearch(queryParam);
+    }
+  }, [searchParams]);
 
   const loadData = async () => {
     setLoading(true);
@@ -55,6 +62,14 @@ const Search: React.FC = () => {
       setUsers(usersData);
     } catch (error: any) {
       console.error('Error searching users:', error);
+    }
+  };
+
+  // Perform search function
+  const performSearch = (query: string) => {
+    setSearchTerm(query);
+    if (query.trim() && (searchType === 'all' || searchType === 'users')) {
+      searchUsers(query);
     }
   };
 
@@ -143,21 +158,22 @@ const Search: React.FC = () => {
 
         {/* Search Bar */}
         <div className="relative mb-6">
-          <SearchIcon className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+          <SearchBar
             placeholder="Search for prompts, tools, or tags..."
-            className="w-full px-4 py-3 pl-12 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white text-lg"
-            disabled={loading}
+            value={searchTerm}
+            onChange={setSearchTerm}
+            onSearch={performSearch}
+            showTrending={true}
+            variant="prominent"
+            size="lg"
+            className="w-full"
           />
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`absolute right-4 top-3.5 p-1 rounded transition-colors ${
+            className={`absolute right-4 top-1/2 transform -translate-y-1/2 p-2 rounded-lg transition-colors ${
               showFilters || selectedTags.length > 0
-                ? 'text-blue-500'
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700'
             }`}
             disabled={loading}
           >

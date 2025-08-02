@@ -5,6 +5,7 @@ import { DatabaseService } from '../services/database';
 import { Tool } from '../types';
 import { Filter, Loader } from 'lucide-react';
 import PageLayout from '../components/PageLayout';
+import SearchBar from '../components/SearchBar';
 
 const Explore: React.FC = () => {
   const navigate = useNavigate();
@@ -77,17 +78,14 @@ const Explore: React.FC = () => {
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
           {/* Search */}
-          <div className="relative">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search tools..."
-              className="w-full px-4 py-3 pl-12 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-              disabled={loading}
-            />
-            <Filter className="absolute left-4 top-3.5 h-5 w-5 text-gray-400" />
-          </div>
+          <SearchBar
+            placeholder="Search AI tools and resources..."
+            value={searchTerm}
+            onChange={setSearchTerm}
+            showTrending={true}
+            variant="default"
+            className="w-full"
+          />
 
           {/* Category Filter */}
           <div className="flex flex-wrap gap-2">

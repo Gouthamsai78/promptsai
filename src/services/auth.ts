@@ -1,4 +1,5 @@
-import { supabase } from '../lib/supabase';
+import { supabase, handleJWTExpiration } from '../lib/supabase';
+import { supabaseWithRetry } from '../utils/supabaseWrapper';
 import { Profile } from '../types';
 
 export class AuthService {

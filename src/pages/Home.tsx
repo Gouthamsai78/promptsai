@@ -4,6 +4,7 @@ import { Post, Reel } from '../types';
 import PostCard from '../components/PostCard';
 import ReelCard from '../components/ReelCard';
 import PageLayout from '../components/PageLayout';
+import SearchBar from '../components/SearchBar';
 
 type FeedItem = (Post & { type: 'post' }) | (Reel & { type: 'reel' });
 
@@ -84,9 +85,17 @@ const Home: React.FC = () => {
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Latest Content
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-gray-400 mb-6">
             Discover amazing AI prompts, reels, and tools from the community
           </p>
+
+          {/* Search Bar */}
+          <SearchBar
+            placeholder="Search prompts, posts, and reels..."
+            showTrending={true}
+            variant="prominent"
+            className="max-w-lg mx-auto md:mx-0"
+          />
         </div>
 
         {/* Error Message */}

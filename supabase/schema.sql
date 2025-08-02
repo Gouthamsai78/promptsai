@@ -218,3 +218,133 @@ ALTER TABLE public.follows ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.user_presence ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.comment_typing ENABLE ROW LEVEL SECURITY;
+
+-- ============================================================================
+-- COMMUNITIES FEATURE SCHEMA EXTENSION
+-- ============================================================================
+
+-- Create community-related enums
+CREATE TYPE community_privacy AS ENUM ('public', 'private');
+CREATE TYPE community_member_role AS ENUM ('owner', 'admin', 'moderator', 'member');
+CREATE TYPE community_member_status AS ENUM ('active', 'pending', 'banned', 'left');
+CREATE TYPE community_content_type AS ENUM ('post', 'reel');
+
+-- Communities table
+CREATE TABLE public.communities (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    name TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    description TEXT,
+    category TEXT NOT NULL,
+    cover_image_url TEXT,
+    privacy community_privacy DEFAULT 'public',
+    require_approval BOOLEAN DEFAULT FALSE,
+    allow_member_posts BOOLEAN DEFAULT TRUE,
+    allow_member_reels BOOLEAN DEFAULT TRUE,
+    member_count INTEGER DEFAULT 0,
+    post_count INTEGER DEFAULT 0,
+    reel_count INTEGER DEFAULT 0,
+    created_by UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Community members table
+CREATE TABLE public.community_members (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    community_id UUID REFERENCES public.communities(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    role community_member_role DEFAULT 'member',
+    status community_member_status DEFAULT 'active',
+    joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    invited_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(community_id, user_id)
+);
+
+-- Community content associations (for posts and reels shared in communities)
+CREATE TABLE public.community_content (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    community_id UUID REFERENCES public.communities(id) ON DELETE CASCADE NOT NULL,
+    content_type community_content_type NOT NULL,
+    post_id UUID REFERENCES public.posts(id) ON DELETE CASCADE,
+    reel_id UUID REFERENCES public.reels(id) ON DELETE CASCADE,
+    shared_by UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    is_pinned BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    CONSTRAINT community_content_check CHECK (
+        (content_type = 'post' AND post_id IS NOT NULL AND reel_id IS NULL) OR
+        (content_type = 'reel' AND reel_id IS NOT NULL AND post_id IS NULL)
+    ),
+    UNIQUE(community_id, post_id),
+    UNIQUE(community_id, reel_id)
+);
+
+-- Community invitations table
+CREATE TABLE public.community_invitations (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    community_id UUID REFERENCES public.communities(id) ON DELETE CASCADE NOT NULL,
+    invited_user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    invited_by UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'expired')),
+    expires_at TIMESTAMP WITH TIME ZONE DEFAULT (NOW() + INTERVAL '7 days'),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(community_id, invited_user_id)
+);
+
+-- Community activity log for moderation and analytics
+CREATE TABLE public.community_activity (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    community_id UUID REFERENCES public.communities(id) ON DELETE CASCADE NOT NULL,
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    activity_type TEXT NOT NULL,
+    activity_data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Add community_id to existing posts and reels tables for direct community association
+ALTER TABLE public.posts ADD COLUMN IF NOT EXISTS community_id UUID REFERENCES public.communities(id) ON DELETE SET NULL;
+ALTER TABLE public.reels ADD COLUMN IF NOT EXISTS community_id UUID REFERENCES public.communities(id) ON DELETE SET NULL;
+
+-- Create indexes for community tables
+CREATE INDEX idx_communities_created_by ON public.communities(created_by);
+CREATE INDEX idx_communities_category ON public.communities(category);
+CREATE INDEX idx_communities_privacy ON public.communities(privacy);
+CREATE INDEX idx_communities_slug ON public.communities(slug);
+CREATE INDEX idx_communities_created_at ON public.communities(created_at DESC);
+
+CREATE INDEX idx_community_members_community_id ON public.community_members(community_id);
+CREATE INDEX idx_community_members_user_id ON public.community_members(user_id);
+CREATE INDEX idx_community_members_role ON public.community_members(role);
+CREATE INDEX idx_community_members_status ON public.community_members(status);
+CREATE INDEX idx_community_members_joined_at ON public.community_members(joined_at DESC);
+
+CREATE INDEX idx_community_content_community_id ON public.community_content(community_id);
+CREATE INDEX idx_community_content_post_id ON public.community_content(post_id);
+CREATE INDEX idx_community_content_reel_id ON public.community_content(reel_id);
+CREATE INDEX idx_community_content_shared_by ON public.community_content(shared_by);
+CREATE INDEX idx_community_content_created_at ON public.community_content(created_at DESC);
+CREATE INDEX idx_community_content_pinned ON public.community_content(is_pinned);
+
+CREATE INDEX idx_community_invitations_community_id ON public.community_invitations(community_id);
+CREATE INDEX idx_community_invitations_invited_user_id ON public.community_invitations(invited_user_id);
+CREATE INDEX idx_community_invitations_status ON public.community_invitations(status);
+CREATE INDEX idx_community_invitations_expires_at ON public.community_invitations(expires_at);
+
+CREATE INDEX idx_community_activity_community_id ON public.community_activity(community_id);
+CREATE INDEX idx_community_activity_user_id ON public.community_activity(user_id);
+CREATE INDEX idx_community_activity_type ON public.community_activity(activity_type);
+CREATE INDEX idx_community_activity_created_at ON public.community_activity(created_at DESC);
+
+-- Add indexes for community_id on posts and reels
+CREATE INDEX IF NOT EXISTS idx_posts_community_id ON public.posts(community_id);
+CREATE INDEX IF NOT EXISTS idx_reels_community_id ON public.reels(community_id);
+
+-- Enable Row Level Security for community tables
+ALTER TABLE public.communities ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_content ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_invitations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.community_activity ENABLE ROW LEVEL SECURITY;

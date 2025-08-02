@@ -1,4 +1,5 @@
-import { supabase } from '../lib/supabase';
+import { supabase, handleJWTExpiration } from '../lib/supabase';
+import { supabaseWithAutoRetry } from '../utils/apiInterceptor';
 import { Database } from '../types/database';
 import { MockDatabaseService } from './mockDatabase';
 import { Post, Reel, Tool, Comment, Profile } from '../types';
@@ -15,6 +16,41 @@ const isOfflineMode = (): boolean => {
   return localStorage.getItem('mock-auth-session') !== null;
 };
 
+// Enhanced query execution with fallback to direct client
+const executeQuery = async <T>(
+  queryFn: (client: any) => Promise<{ data: T; error: any }>,
+  operation: string = 'query'
+): Promise<{ data: T; error: any }> => {
+  try {
+    console.log(`🔍 Executing ${operation} with enhanced client...`);
+
+    // Try with direct client first to avoid wrapper issues
+    let result = await queryFn(supabase);
+
+    // If direct client fails with JWT error, try to refresh and retry
+    if (result.error && (result.error.message?.includes('JWT') || result.error.code === 'PGRST301')) {
+      console.log(`🔄 JWT error in ${operation}, attempting refresh...`);
+      const refreshedSession = await handleJWTExpiration(result.error);
+
+      if (refreshedSession) {
+        console.log(`✅ Session refreshed, retrying ${operation}...`);
+        result = await queryFn(supabase);
+      }
+    }
+
+    if (result.error) {
+      console.error(`❌ ${operation} failed:`, result.error);
+    } else {
+      console.log(`✅ ${operation} succeeded`);
+    }
+
+    return result;
+  } catch (error: any) {
+    console.error(`❌ Exception during ${operation}:`, error);
+    return { data: null as T, error };
+  }
+};
+
 export class DatabaseService {
   // Posts
   static async getPosts(limit: number = 20, offset: number = 0): Promise<Post[]> {
@@ -24,26 +60,38 @@ export class DatabaseService {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          author:profiles(*)
-        `)
-        .eq('status', 'published')
-        .order('created_at', { ascending: false })
-        .range(offset, offset + limit - 1);
+      console.log('🔍 Fetching posts with enhanced JWT handling...');
+
+      const { data, error } = await executeQuery(
+        (client) => client
+          .from('posts')
+          .select(`
+            *,
+            author:profiles(*)
+          `)
+          .eq('status', 'published')
+          .order('created_at', { ascending: false })
+          .range(offset, offset + limit - 1),
+        'getPosts'
+      );
 
       if (error) throw error;
 
+      console.log('✅ Posts fetched successfully:', data?.length || 0);
       return data.map(post => ({
         ...post,
         author: post.author as Profile,
       })) as Post[];
     } catch (error: any) {
-      // If network error, fall back to mock data
-      if (error.message && (error.message.includes('Failed to fetch') || error.message.includes('ERR_NAME_NOT_RESOLVED'))) {
-        console.log('🔄 Network error in getPosts, using mock data');
+      console.error('❌ Error fetching posts from database:', error);
+      // If network error or JWT error, fall back to mock data
+      if (error.message && (
+        error.message.includes('Failed to fetch') ||
+        error.message.includes('ERR_NAME_NOT_RESOLVED') ||
+        error.message.includes('JWT expired') ||
+        error.code === 'PGRST301'
+      )) {
+        console.log('🔄 Network/Auth error in getPosts, using mock data');
         return MockDatabaseService.getPosts(offset, limit);
       }
       throw error;
@@ -209,31 +257,47 @@ export class DatabaseService {
 
   // Reels
   static async getReels(limit: number = 20, offset: number = 0): Promise<Reel[]> {
-    console.log('🔍 DatabaseService.getReels called', { limit, offset });
+    console.log('🔍 DatabaseService.getReels called with enhanced JWT handling', { limit, offset });
 
-    const { data, error } = await supabase
-      .from('reels')
-      .select(`
-        *,
-        author:profiles(*)
-      `)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    try {
+      const { data, error } = await executeQuery(
+        (client) => client
+          .from('reels')
+          .select(`
+            *,
+            author:profiles(*)
+          `)
+          .order('created_at', { ascending: false })
+          .range(offset, offset + limit - 1),
+        'getReels'
+      );
 
-    if (error) {
+      if (error) {
+        console.error('❌ Error fetching reels from database:', error);
+        throw error;
+      }
+
+      console.log('✅ Raw reels data from database:', data?.length || 0, 'reels');
+
+      const reels = data.map(reel => ({
+        ...reel,
+        author: reel.author as Profile,
+      })) as Reel[];
+
+      console.log('✅ Processed reels successfully');
+      return reels;
+    } catch (error: any) {
       console.error('❌ Error fetching reels from database:', error);
+      // If JWT error or network error, could fall back to mock data if needed
+      if (error.message && (
+        error.message.includes('JWT expired') ||
+        error.code === 'PGRST301' ||
+        error.message.includes('Failed to fetch')
+      )) {
+        console.log('🔄 Auth/Network error in getReels, could use mock data if available');
+      }
       throw error;
     }
-
-    console.log('✅ Raw reels data from database:', data);
-
-    const reels = data.map(reel => ({
-      ...reel,
-      author: reel.author as Profile,
-    })) as Reel[];
-
-    console.log('✅ Processed reels:', reels);
-    return reels;
   }
 
   static async createReel(reel: Tables['reels']['Insert']): Promise<Reel> {

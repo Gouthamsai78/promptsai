@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { AuthService } from '../services/auth';
 import { MockAuthService } from '../services/mockAuth';
+import { supabaseWithAutoRetry } from '../utils/apiInterceptor';
+import { supabase, handleJWTExpiration } from '../lib/supabase';
 
 import { Profile } from '../types';
 import { debugLog, debugError, debugSuccess, trackAuthState } from '../utils/debug';
@@ -94,10 +96,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (session?.user) {
             try {
               debugLog('Fetching user profile for:', session.user.id);
-              const profile = await AuthService.getUserProfile(session.user.id);
+
+              // Use the original supabase client directly for profile fetching to avoid wrapper issues
+              const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', session.user.id)
+                .single();
+
+              if (profileError) {
+                debugError('Profile fetch error:', profileError);
+
+                // Check if it's a JWT error and try to refresh
+                if (profileError.message?.includes('JWT') || profileError.code === 'PGRST301') {
+                  debugLog('JWT error detected, attempting refresh...');
+                  const refreshedSession = await handleJWTExpiration(profileError);
+
+                  if (refreshedSession) {
+                    // Retry profile fetch with refreshed session
+                    const { data: retryProfileData, error: retryProfileError } = await supabase
+                      .from('profiles')
+                      .select('*')
+                      .eq('id', session.user.id)
+                      .single();
+
+                    if (retryProfileError) {
+                      throw new Error(`Profile fetch failed after retry: ${retryProfileError.message}`);
+                    }
+
+                    if (isMounted) {
+                      setProfile(retryProfileData);
+                      debugSuccess('Profile loaded after retry:', retryProfileData?.username || 'No username');
+                      trackAuthState({ user: true, loading: false, error: null, step: 'PROFILE_LOADED' });
+                    }
+                  } else {
+                    throw new Error(`Profile fetch failed: ${profileError.message}`);
+                  }
+                } else {
+                  throw new Error(`Profile fetch failed: ${profileError.message}`);
+                }
+              }
+
               if (isMounted) {
-                setProfile(profile);
-                debugSuccess('Profile loaded:', profile?.username || 'No username');
+                setProfile(profileData);
+                debugSuccess('Profile loaded:', profileData?.username || 'No username');
                 trackAuthState({ user: true, loading: false, error: null, step: 'PROFILE_LOADED' });
               }
             } catch (error: any) {
@@ -189,9 +231,43 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (session?.user) {
           try {
-            const profile = await AuthService.getUserProfile(session.user.id);
-            if (isMounted) {
-              setProfile(profile);
+            // Use the original supabase client directly for profile fetching
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            if (profileError) {
+              debugError('Profile fetch error on auth change:', profileError);
+
+              // Check if it's a JWT error and try to refresh
+              if (profileError.message?.includes('JWT') || profileError.code === 'PGRST301') {
+                debugLog('JWT error detected on auth change, attempting refresh...');
+                const refreshedSession = await handleJWTExpiration(profileError);
+
+                if (refreshedSession) {
+                  // Retry profile fetch with refreshed session
+                  const { data: retryProfileData, error: retryProfileError } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+
+                  if (!retryProfileError && isMounted) {
+                    setProfile(retryProfileData);
+                    debugSuccess('Profile updated from auth change after retry');
+                  } else if (isMounted) {
+                    setProfile(null);
+                  }
+                } else if (isMounted) {
+                  setProfile(null);
+                }
+              } else if (isMounted) {
+                setProfile(null);
+              }
+            } else if (isMounted) {
+              setProfile(profileData);
               debugSuccess('Profile updated from auth change');
             }
           } catch (error) {

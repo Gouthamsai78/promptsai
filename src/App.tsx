@@ -16,11 +16,18 @@ import Search from './pages/Search';
 import Profile from './pages/Profile';
 import UserProfile from './pages/UserProfile';
 import Chat from './pages/Chat';
+import AIChat from './pages/AIChat';
+import Messages from './pages/Messages';
+import Communities from './pages/Communities';
+import CommunityDiscussionPage from './pages/CommunityDiscussionPage';
+import AIApps from './pages/AIApps';
 import SmartPromptStudio from './pages/SmartPromptStudio';
 import TestSmartFeatures from './pages/TestSmartFeatures';
 import PromptTransformationDemo from './components/PromptTransformationDemo';
 import TestImageAnalysis from './components/TestImageAnalysis';
 import SimpleEnhancedPromptsTest from './components/SimpleEnhancedPromptsTest';
+import DatabaseDiagnostic from './components/DatabaseDiagnostic';
+import CommunityMessagingTest from './components/CommunityMessagingTest';
 
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -132,12 +139,62 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/chat"
+          path="/messages"
+          element={
+            <ProtectedRoute>
+              <OfflineModeIndicator />
+              <Navigation />
+              <Messages />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/chat/:conversationId"
           element={
             <ProtectedRoute>
               <OfflineModeIndicator />
               <Navigation />
               <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-chat"
+          element={
+            <ProtectedRoute>
+              <OfflineModeIndicator />
+              <Navigation />
+              <AIChat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/communities"
+          element={
+            <ProtectedRoute>
+              <OfflineModeIndicator />
+              <Navigation />
+              <Communities />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community/:communityId/discussion"
+          element={
+            <ProtectedRoute>
+              <OfflineModeIndicator />
+              <Navigation />
+              <CommunityDiscussionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/ai-apps"
+          element={
+            <ProtectedRoute>
+              <OfflineModeIndicator />
+              <Navigation />
+              <AIApps />
             </ProtectedRoute>
           }
         />
@@ -221,6 +278,22 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute requireAuth={false}>
               <TestSmartFeatures />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/database-diagnostic"
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <DatabaseDiagnostic />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community-messaging-test"
+          element={
+            <ProtectedRoute requireAuth={false}>
+              <CommunityMessagingTest />
             </ProtectedRoute>
           }
         />
