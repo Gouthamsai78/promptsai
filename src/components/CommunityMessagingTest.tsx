@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CommunityDiscussionService } from '../services/communityDiscussions';
+import { CommunityDiscussionsService } from '../services/communityDiscussions';
 import { CommunityService } from '../services/community';
 import { useAuth } from '../contexts/AuthContext';
 import { AlertCircle, CheckCircle, Loader, MessageCircle, Users } from 'lucide-react';
@@ -82,7 +82,7 @@ const CommunityMessagingTest: React.FC = () => {
     // Test 3: Fetch Existing Messages
     updateResult('fetch', 'pending', 'Fetching existing messages...');
     try {
-      const messagesResponse = await CommunityDiscussionService.getCommunityMessages(selectedCommunity, 10, 0);
+      const messagesResponse = await CommunityDiscussionsService.getCommunityMessages(selectedCommunity, 10, 0);
       if (messagesResponse.success && messagesResponse.data) {
         updateResult('fetch', 'success', `Retrieved ${messagesResponse.data.length} messages`, { 
           messageCount: messagesResponse.data.length,
@@ -98,7 +98,7 @@ const CommunityMessagingTest: React.FC = () => {
     // Test 4: Send Test Message
     updateResult('send', 'pending', 'Sending test message...');
     try {
-      const sendResponse = await CommunityDiscussionService.sendCommunityMessage(
+      const sendResponse = await CommunityDiscussionsService.sendCommunityMessage(
         selectedCommunity,
         user.id,
         testMessage,
