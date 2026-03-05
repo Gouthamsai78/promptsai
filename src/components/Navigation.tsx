@@ -43,7 +43,7 @@ const Navigation: React.FC = () => {
       {/* Desktop Navigation */}
       <nav className="hidden md:flex fixed top-0 left-0 right-0 z-50 glass-panel border-b border-gray-200/50 dark:border-gray-700/50 h-16 transition-all duration-300">
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between w-full">
-          <Link to="/" className="flex items-center space-x-2 group">
+          <Link to="/" className="flex items-center space-x-2 group" aria-label="PromptShare AI Home">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg shadow-blue-500/30 group-hover:scale-105 transition-transform duration-300">
               <span className="text-white font-bold text-sm tracking-wider">AI</span>
             </div>

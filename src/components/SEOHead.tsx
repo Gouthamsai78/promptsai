@@ -41,12 +41,22 @@ const SEOHead: React.FC<SEOHeadProps> = ({
         setMeta('description', description);
         setMeta('keywords', keywords.join(', '));
 
+        // Canonical URL
+        const currentUrl = url || window.location.origin + window.location.pathname;
+        let canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.setAttribute('rel', 'canonical');
+            document.head.appendChild(canonical);
+        }
+        canonical.setAttribute('href', currentUrl);
+
         // Open Graph tags
         setMeta('og:title', title, true);
         setMeta('og:description', description, true);
         setMeta('og:type', type, true);
         if (image) setMeta('og:image', image, true);
-        if (url) setMeta('og:url', url, true);
+        if (url) setMeta('og:url', currentUrl, true);
 
         // Twitter Card tags
         setMeta('twitter:card', 'summary_large_image');

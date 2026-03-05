@@ -117,7 +117,7 @@ const Reels: React.FC = () => {
         <div className="text-center">
           <p className="text-white text-lg mb-4">{error}</p>
           <button
-            onClick={loadReels}
+            onClick={() => loadReels()}
             className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
           >
             Try Again
@@ -140,6 +140,7 @@ const Reels: React.FC = () => {
 
   return (
     <div className="fixed inset-0 bg-black">
+      <h1 className="sr-only">AI Reels - Discover and Share Short Form AI Video Prompts</h1>
       <div
         ref={containerRef}
         className="h-full overflow-y-auto snap-y snap-mandatory reels-container"
