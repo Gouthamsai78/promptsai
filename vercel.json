@@ -6,7 +6,11 @@
       "destination": "/api/:match*"
     },
     {
-      "source": "/:path*",
+      "source": "/(google.*\\.html|sitemap\\.xml|robots\\.txt|site\\.webmanifest)",
+      "destination": "/$1"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
