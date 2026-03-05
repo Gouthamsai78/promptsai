@@ -307,8 +307,23 @@ const Profile: React.FC = () => {
     );
   }
 
+  // Person Schema for AI SEO Expert Attribution
+  const personSchema = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": profile.full_name || profile.username,
+    "url": window.location.href,
+    "image": profile.avatar_url,
+    "description": profile.bio,
+    "sameAs": profile.website ? [profile.website] : []
+  };
+
   return (
     <PageLayout>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(personSchema) }}
+      />
       <div className="max-w-4xl mx-auto px-4">
         {/* Profile Header */}
         <div className="glass-card bg-white/40 dark:bg-gray-800/40 rounded-3xl shadow-2xl p-8 mb-10 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-md">
@@ -514,8 +529,8 @@ const Profile: React.FC = () => {
               key={key}
               onClick={() => setActiveTab(key as typeof activeTab)}
               className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${activeTab === key
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg'
-                  : 'text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg'
+                : 'text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                 }`}
             >
               <Icon size={18} />

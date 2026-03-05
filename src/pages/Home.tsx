@@ -7,6 +7,9 @@ import SearchBar from '../components/SearchBar';
 import { useRecommendations } from '../hooks/useRecommendations';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 import { Sparkles, Clock, Loader } from 'lucide-react';
+import AISEOAnswerBlock from '../components/AISEOAnswerBlock';
+import FAQSection from '../components/FAQSection';
+import AuthorityStats from '../components/AuthorityStats';
 
 const POST_BATCH = 50; // Match search page batch size to ensure parity
 
@@ -180,6 +183,16 @@ const Home: React.FC = () => {
             variant="prominent"
             className="max-w-lg mx-auto md:mx-0"
           />
+
+          {/* AI SEO Definition Block */}
+          <AISEOAnswerBlock
+            title="What is PromptShare AI?"
+            answer="PromptShare AI is a community-driven platform for discovering, creating, and sharing high-quality AI prompts for models like Gemini, ChatGPT, and Midjourney. Our mission is to democratize prompt engineering by providing a collaborative library where creators can find inspiration and optimize their AI-driven workflows with proven, community-vetted prompt templates."
+            id="about-promptshare"
+          />
+
+          {/* Authority Statistics */}
+          <AuthorityStats />
         </div>
 
         {/* Error Message */}
@@ -248,6 +261,30 @@ const Home: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* AI SEO FAQ Section */}
+        <div className="mt-16 border-t border-gray-100 dark:border-gray-800 pt-10">
+          <FAQSection
+            faqs={[
+              {
+                question: "How do I find the best AI prompts on PromptShare?",
+                answer: "You can find the best AI prompts by browsing the 'For You' feed, which uses our personalization algorithm, or by exploring the 'Latest' tab. Use the search bar for specific models like 'Midjourney' or 'Gemini' to discover top-rated community contributions."
+              },
+              {
+                question: "Is PromptShare AI free to use?",
+                answer: "Yes, PromptShare AI is a free community platform where you can discover and share prompts. We aim to support the AI creative community by providing open access to a growing library of prompt engineering resources."
+              },
+              {
+                question: "Can I use these prompts for commercial projects?",
+                answer: "Most prompts shared on PromptShare AI are contributed by the community and are available for experimentation and use. We recommend citing the original creator when using complex prompt templates in high-stakes commercial environments."
+              },
+              {
+                question: "What AI models are supported?",
+                answer: "We support prompts for all major generative AI models, including Google Gemini, OpenAI ChatGPT, Anthropic Claude, Midjourney, DALL-E, and Stable Diffusion. Our categories help you filter for text, image, and code generation specifically."
+              }
+            ]}
+          />
+        </div>
       </div>
     </PageLayout>
   );

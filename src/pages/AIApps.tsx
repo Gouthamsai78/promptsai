@@ -4,7 +4,6 @@ import {
   Camera,
   MessageCircle,
   Wand2,
-  Image as ImageIcon,
   Brain,
   Zap,
   ArrowRight,
@@ -14,8 +13,9 @@ import {
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '../components/PageLayout';
 import AIPromptEnhancer from '../components/AIPromptEnhancer';
-import AIChatInterface from '../components/AIChatInterface';
 import TestImageAnalysis from '../components/TestImageAnalysis';
+import AISEOAnswerBlock from '../components/AISEOAnswerBlock';
+import FAQSection from '../components/FAQSection';
 import { AIService } from '../services/ai';
 
 interface AIApp {
@@ -166,13 +166,20 @@ const AIApps: React.FC = () => {
           <p className="text-xl font-medium text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
             Unleash the power of professional prompt engineering with our curated suite of AI-driven creative tools.
           </p>
+
+          <div className="max-w-3xl mx-auto mt-10">
+            <AISEOAnswerBlock
+              title="What are AI Creative Tools?"
+              answer="AI creative tools are software applications that leverage generative artificial intelligence to assist in content creation, ranging from automated prompt enhancement to image-to-text analysis. At PromptShare AI, our tools are designed to streamline the creative process, helping you optimize workflows and achieve professional results with minimal effort."
+            />
+          </div>
         </div>
 
         {/* AI Service Status */}
         <div className="mb-12 flex justify-center">
           <div className={`inline-flex items-center space-x-3 px-5 py-2.5 rounded-2xl glass-panel border shadow-sm ${AIService.isAIAvailable()
-              ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
-              : 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20'
+            ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+            : 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20'
             }`}>
             <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${AIService.isAIAvailable() ? 'bg-green-500' : 'bg-yellow-500'
               }`} />
@@ -229,8 +236,8 @@ const AIApps: React.FC = () => {
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
                 className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === category.id
-                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-lg scale-105'
-                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                  ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-lg scale-105'
+                  : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
                   }`}
               >
                 {category.label}
@@ -246,14 +253,14 @@ const AIApps: React.FC = () => {
               key={app.id}
               onClick={() => handleAppClick(app)}
               className={`glass-panel p-7 rounded-3xl border transition-all duration-300 flex flex-col h-full ${app.comingSoon
-                  ? 'opacity-50 grayscale bg-gray-100/30 dark:bg-gray-800/30 border-gray-200/30 dark:border-gray-700/30 cursor-not-allowed'
-                  : 'bg-white/40 dark:bg-gray-800/40 border-gray-200/50 dark:border-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-2xl hover:scale-[1.02] cursor-pointer'
+                ? 'opacity-50 grayscale bg-gray-100/30 dark:bg-gray-800/30 border-gray-200/30 dark:border-gray-700/30 cursor-not-allowed'
+                : 'bg-white/40 dark:bg-gray-800/40 border-gray-200/50 dark:border-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-2xl hover:scale-[1.02] cursor-pointer'
                 }`}
             >
               <div className="flex items-start justify-between mb-6">
                 <div className={`p-3.5 rounded-2xl shadow-sm ${app.comingSoon
-                    ? 'bg-gray-100 dark:bg-gray-700'
-                    : 'bg-gradient-to-br from-blue-500/10 to-purple-600/10'
+                  ? 'bg-gray-100 dark:bg-gray-700'
+                  : 'bg-gradient-to-br from-blue-500/10 to-purple-600/10'
                   }`}>
                   <app.icon className={`h-7 w-7 ${app.comingSoon ? 'text-gray-400' : 'text-blue-500 dark:text-blue-400'
                     }`} />
@@ -313,6 +320,27 @@ const AIApps: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* AI SEO FAQ Section */}
+        <div className="mt-24 border-t border-gray-100 dark:border-gray-800 pt-12">
+          <FAQSection
+            title="AI Tools Frequently Asked Questions"
+            faqs={[
+              {
+                question: "How does the AI Prompt Enhancer work?",
+                answer: "Our AI Prompt Enhancer uses advanced natural language processing to analyze your basic input and expand it into a detailed, descriptive prompt. It adds specific artistic styles, technical parameters, and descriptive adjectives that help generative AI models like Midjourney or DALL-E produce higher-quality results."
+              },
+              {
+                question: "Can I use the Image-to-Prompt tool for free?",
+                answer: "Yes, the Image to Prompt analysis tool is currently available for free to all members of the PromptShare AI community. Simply upload an image, and our AI will generate a detailed text description that you can use to recreate similar visual styles."
+              },
+              {
+                question: "What is the difference between Simulation Mode and Online Mode?",
+                answer: "Online Mode connects directly to our high-performance AI infrastructure for real-time processing. Simulation Mode is an intelligent fallback that allows you to explore the tool interfaces and logical workflows even when your local environment isn't connected to the primary AI services."
+              }
+            ]}
+          />
+        </div>
       </div>
     </PageLayout>
   );
