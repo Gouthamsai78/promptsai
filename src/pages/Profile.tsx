@@ -170,23 +170,20 @@ const Profile: React.FC = () => {
     danger?: boolean;
   }> = ({ icon, title, description, action, onClick, danger = false }) => (
     <div
-      className={`flex items-center justify-between p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 ${
-        onClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors' : ''
-      }`}
+      className={`flex items-center justify-between p-5 glass-panel bg-white/50 dark:bg-gray-800/50 rounded-2xl border border-gray-200/50 dark:border-gray-700/50 transition-all duration-300 ${onClick ? 'cursor-pointer hover:bg-white dark:hover:bg-gray-800 hover:scale-[1.02] active:scale-[0.98] shadow-sm' : ''
+        }`}
       onClick={onClick}
     >
-      <div className="flex items-center space-x-3">
-        <div className={`p-2 rounded-lg ${danger ? 'bg-red-100 dark:bg-red-900/20' : 'bg-gray-100 dark:bg-gray-700'}`}>
-          <div className={danger ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400'}>
-            {icon}
-          </div>
+      <div className="flex items-center space-x-4">
+        <div className={`p-3 rounded-xl shadow-sm ${danger ? 'bg-red-500/10 text-red-500' : 'bg-blue-500/10 text-blue-500'}`}>
+          {icon}
         </div>
         <div>
-          <h3 className={`font-medium ${danger ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>
+          <h3 className={`font-bold text-sm ${danger ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}>
             {title}
           </h3>
           {description && (
-            <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>
           )}
         </div>
       </div>
@@ -229,14 +226,12 @@ const Profile: React.FC = () => {
           action={
             <button
               onClick={() => setNotifications(!notifications)}
-              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                notifications ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-              }`}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                }`}
             >
               <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  notifications ? 'translate-x-6' : 'translate-x-1'
-                }`}
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notifications ? 'translate-x-6' : 'translate-x-1'
+                  }`}
               />
             </button>
           }
@@ -251,7 +246,7 @@ const Profile: React.FC = () => {
           title="Privacy Settings"
           description="Manage your account privacy and data"
           action={<ChevronRight className="w-5 h-5 text-gray-400" />}
-          onClick={() => {/* TODO: Navigate to privacy settings */}}
+          onClick={() => {/* TODO: Navigate to privacy settings */ }}
         />
       </div>
 
@@ -316,100 +311,102 @@ const Profile: React.FC = () => {
     <PageLayout>
       <div className="max-w-4xl mx-auto px-4">
         {/* Profile Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 border border-gray-100 dark:border-gray-700">
-          <div className="flex flex-col md:flex-row md:items-start space-y-4 md:space-y-0 md:space-x-6">
+        <div className="glass-card bg-white/40 dark:bg-gray-800/40 rounded-3xl shadow-2xl p-8 mb-10 border border-gray-200/50 dark:border-gray-700/50 backdrop-blur-md">
+          <div className="flex flex-col md:flex-row md:items-start space-y-6 md:space-y-0 md:space-x-8">
             {/* Avatar */}
-            <div className="relative">
-              <img
-                src={profile.avatar_url || `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200`}
-                alt={profile.username}
-                className="w-24 h-24 rounded-full object-cover"
-              />
+            <div className="relative group mx-auto md:mx-0">
+              <div className="w-32 h-32 rounded-3xl overflow-hidden ring-4 ring-white/50 dark:ring-gray-700/50 shadow-xl transition-transform duration-300 group-hover:scale-105">
+                <img
+                  src={profile.avatar_url || `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=200`}
+                  alt={profile.username}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               {profile.verified && (
-                <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center border-2 border-white dark:border-gray-800">
-                  <span className="text-white text-xs">✓</span>
+                <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center border-2 border-white dark:border-gray-800 shadow-lg">
+                  <span className="text-white text-xs font-bold">✓</span>
                 </div>
               )}
               <button
                 onClick={() => setIsEditing(true)}
-                className="absolute bottom-0 right-0 p-1.5 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition-colors"
+                className="absolute -top-2 -right-2 p-2 bg-white dark:bg-gray-700 text-gray-600 dark:text-white rounded-xl shadow-lg hover:scale-110 active:scale-90 transition-all duration-300"
               >
-                <Camera size={12} />
+                <Camera size={16} />
               </button>
             </div>
 
             {/* Profile Info */}
-            <div className="flex-1">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                  <h1 className="text-4xl font-extrabold font-outfit tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
                     {profile.full_name || profile.username}
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-lg font-bold text-blue-500 dark:text-blue-400 mt-1">
                     @{profile.username}
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-2 mt-3 sm:mt-0">
+                <div className="flex items-center justify-center space-x-3 mt-6 md:mt-0">
                   <button
                     onClick={() => setIsEditing(!isEditing)}
-                    className="flex items-center space-x-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+                    className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/20 transition-all duration-300 hover:scale-105 active:scale-95"
                   >
-                    <Edit size={16} />
+                    <Edit size={18} />
                     <span>Edit Profile</span>
                   </button>
-                  <button className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                    <Settings size={20} />
+                  <button className="p-2.5 glass-panel bg-white/50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-xl transition-all duration-300 hover:scale-110">
+                    <Settings size={22} />
                   </button>
                 </div>
               </div>
 
               {/* Bio */}
               {profile.bio && (
-                <p className="text-gray-700 dark:text-gray-300 mb-4">
-                  {profile.bio}
+                <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6 font-medium italic">
+                  "{profile.bio}"
                 </p>
               )}
 
               {/* Additional Info */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
-                <div className="flex items-center space-x-1">
-                  <Calendar size={16} />
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm font-bold text-gray-500 dark:text-gray-400 mb-8">
+                <div className="flex items-center space-x-2">
+                  <Calendar size={18} className="text-blue-500" />
                   <span>Joined {new Date(profile.created_at).toLocaleDateString()}</span>
                 </div>
                 {profile.website && (
-                  <div className="flex items-center space-x-1">
-                    <LinkIcon size={16} />
+                  <div className="flex items-center space-x-2">
+                    <LinkIcon size={18} className="text-purple-500" />
                     <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-                      {profile.website}
+                      {profile.website.replace(/^https?:\/\/(www\.)?/, '')}
                     </a>
                   </div>
                 )}
               </div>
 
               {/* Stats */}
-              <div className="flex space-x-6">
-                <div className="text-center">
-                  <div className="text-xl font-bold text-gray-900 dark:text-white">
+              <div className="flex items-center justify-center md:justify-start space-x-12">
+                <div className="text-center group cursor-pointer">
+                  <div className="text-2xl font-black text-gray-900 dark:text-white group-hover:text-blue-500 transition-colors">
                     {profile.posts_count}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-gray-500 transition-colors">
                     Posts
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-gray-900 dark:text-white">
+                <div className="text-center group cursor-pointer">
+                  <div className="text-2xl font-black text-gray-900 dark:text-white group-hover:text-purple-500 transition-colors">
                     {profile.followers_count}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-gray-500 transition-colors">
                     Followers
                   </div>
                 </div>
-                <div className="text-center">
-                  <div className="text-xl font-bold text-gray-900 dark:text-white">
+                <div className="text-center group cursor-pointer">
+                  <div className="text-2xl font-black text-gray-900 dark:text-white group-hover:text-indigo-500 transition-colors">
                     {profile.following_count}
                   </div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <div className="text-xs font-black uppercase tracking-widest text-gray-400 group-hover:text-gray-500 transition-colors">
                     Following
                   </div>
                 </div>
@@ -507,7 +504,7 @@ const Profile: React.FC = () => {
         )}
 
         {/* Tabs */}
-        <div className="flex space-x-1 mb-8 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+        <div className="flex space-x-2 mb-10 glass-panel bg-gray-100/50 dark:bg-gray-800/50 rounded-2xl p-1.5 border border-gray-200/50 dark:border-gray-700/50">
           {[
             { key: 'posts', label: 'Posts', icon: Grid },
             { key: 'saved', label: 'Saved', icon: Bookmark },
@@ -516,16 +513,16 @@ const Profile: React.FC = () => {
             <button
               key={key}
               onClick={() => setActiveTab(key as typeof activeTab)}
-              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-md text-sm font-medium transition-colors ${
-                activeTab === key
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
+              className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3.5 rounded-xl text-sm font-black uppercase tracking-widest transition-all duration-300 ${activeTab === key
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-lg'
+                  : 'text-gray-500 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                }`}
             >
               <Icon size={18} />
-              <span>{label}</span>
+              <span className="hidden sm:inline">{label}</span>
               {key !== 'settings' && (
-                <span className="text-xs bg-gray-200 dark:bg-gray-600 px-2 py-0.5 rounded-full">
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg transition-colors ${activeTab === key ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-600'
+                  }`}>
                   {getTabContent().length}
                 </span>
               )}

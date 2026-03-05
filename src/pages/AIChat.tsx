@@ -581,488 +581,497 @@ const Chat: React.FC = () => {
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <MessageCircle className="h-5 w-5 text-white" />
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <MessageCircle className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-3xl font-extrabold font-outfit tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300">
                   AI Prompt Chat
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Professional prompt engineering assistant
                 </p>
               </div>
             </div>
 
-          <div className="flex items-center space-x-2">
-            {/* Session Stats */}
-            <div className="hidden md:flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-lg px-3 py-2">
-              <span>Prompts: {conversationMemory.sessionContext.totalPrompts}</span>
-              <span>Enhanced: {conversationMemory.sessionContext.successfulEnhancements}</span>
-              <span>Avg: {Math.round(conversationMemory.sessionContext.averageProcessingTime)}ms</span>
-              <span>Templates: {Object.keys(PromptTemplateService.getUsageStatistics() || {}).length}</span>
-            </div>
+            <div className="flex items-center space-x-4">
+              {/* Session Stats */}
+              <div className="hidden md:flex items-center space-x-4 text-xs font-bold text-gray-500 dark:text-gray-400 glass-panel border border-gray-200/50 dark:border-gray-700/50 rounded-xl px-4 py-2.5">
+                <span className="flex items-center gap-1.5"><Sparkles size={12} className="text-purple-500" /> Prompts: {conversationMemory.sessionContext.totalPrompts}</span>
+                <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
+                <span>Enhanced: {conversationMemory.sessionContext.successfulEnhancements}</span>
+                <span className="w-px h-3 bg-gray-300 dark:bg-gray-600" />
+                <span>Avg: {Math.round(conversationMemory.sessionContext.averageProcessingTime)}ms</span>
+              </div>
 
-            <button
-              onClick={clearConversation}
-              className="flex items-center space-x-1 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              title="Clear conversation"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span className="hidden sm:inline">Clear</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Chat Container */}
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden">
-          {/* Messages Area */}
-          <div
-            ref={chatContainerRef}
-            className="flex-1 overflow-y-auto p-6 space-y-6"
-          >
-            {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+              <button
+                onClick={clearConversation}
+                className="flex items-center space-x-2 px-4 py-2.5 glass-panel border border-gray-200/50 dark:border-gray-700/50 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-all duration-300 hover:scale-105 active:scale-95"
+                title="Clear conversation"
               >
-                <div className={`flex space-x-3 max-w-4xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                  {/* Avatar */}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.type === 'user'
-                      ? 'bg-blue-500'
-                      : 'bg-gradient-to-br from-purple-500 to-blue-600'
-                  }`}>
-                    {message.type === 'user' ? (
-                      <User className="h-4 w-4 text-white" />
-                    ) : (
-                      <Bot className="h-4 w-4 text-white" />
-                    )}
-                  </div>
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">Clear</span>
+              </button>
+            </div>
+          </div>
 
-                  {/* Message Content */}
-                  <div className={`flex-1 ${message.type === 'user' ? 'text-right' : ''}`}>
-                    <div className={`inline-block p-4 rounded-2xl ${
-                      message.type === 'user'
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
-                    }`}>
-                      {message.isLoading ? (
-                        <div className="flex items-center space-x-2">
-                          <Loader className="h-4 w-4 animate-spin" />
-                          <span>{message.content}</span>
-                        </div>
+          {/* Chat Container */}
+          <div className="flex-1 glass-card bg-white/40 dark:bg-gray-800/40 rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 flex flex-col overflow-hidden backdrop-blur-md">
+            {/* Messages Area */}
+            <div
+              ref={chatContainerRef}
+              className="flex-1 overflow-y-auto p-6 space-y-6"
+            >
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`flex space-x-3 max-w-4xl ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                    {/* Avatar */}
+                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg ${message.type === 'user'
+                        ? 'bg-gradient-to-br from-blue-500 to-blue-600 shadow-blue-500/20'
+                        : 'bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-600 shadow-purple-500/20 ring-2 ring-white/10'
+                      }`}>
+                      {message.type === 'user' ? (
+                        <User className="h-5 w-5 text-white" />
                       ) : (
-                        <div className="whitespace-pre-wrap">{message.content}</div>
+                        <Bot className="h-5 w-5 text-white" />
                       )}
                     </div>
 
-
-
-                    {/* Enhanced Prompts Display */}
-                    {(() => {
-                      // Get enhanced prompts from message or cache
-                      const enhancedPrompts = message.enhancedPrompts || enhancedPromptsCache[message.id] || [];
-                      const hasValidPrompts = Array.isArray(enhancedPrompts) && enhancedPrompts.length > 0;
-
-                      console.log('🔍 Enhanced Prompts Rendering Check:', {
-                        messageId: message.id,
-                        fromMessage: !!message.enhancedPrompts,
-                        fromCache: !!enhancedPromptsCache[message.id],
-                        finalCount: enhancedPrompts.length,
-                        hasValidPrompts
-                      });
-
-                      return hasValidPrompts ? (
-                        <div className="mt-4 space-y-3">
-                          <div className="text-sm font-medium text-green-600 mb-2">
-                            ✅ Found {enhancedPrompts.length} Enhanced Prompts:
-                          </div>
-                          {enhancedPrompts.map((prompt, index) => (
-                          <div
-                            key={prompt.id}
-                            className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg p-4"
-                          >
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
-                                <Sparkles className="h-4 w-4 text-purple-500" />
-                                <span className="font-medium text-sm text-gray-700 dark:text-gray-300 capitalize">
-                                  {prompt.style.replace('_', ' ')}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => copyToClipboard(prompt.prompt)}
-                                className="flex items-center space-x-1 px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors"
-                                title="Copy to clipboard"
-                              >
-                                <Copy className="h-3 w-3" />
-                                <span>Copy</span>
-                              </button>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                              {prompt.description}
-                            </p>
-                            <div className="bg-gray-50 dark:bg-gray-900 rounded p-3 text-sm text-gray-800 dark:text-gray-200 font-mono">
-                              {prompt.prompt}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null;
-                    })()}
-
-                    {/* Template Suggestions */}
-                    {message.templateSuggestion && message.templateSuggestion.suggestedTemplate && (
-                      <div className="mt-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-2">
+                    {/* Message Content */}
+                    <div className={`flex-1 ${message.type === 'user' ? 'text-right' : ''}`}>
+                      <div className={`inline-block p-4 md:p-5 rounded-2xl lg:rounded-3xl shadow-sm ${message.type === 'user'
+                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-tr-none'
+                          : 'glass-panel bg-white/80 dark:bg-gray-700/50 text-gray-900 dark:text-white border border-gray-200/50 dark:border-gray-700/50 rounded-tl-none'
+                        }`}>
+                        {message.isLoading ? (
                           <div className="flex items-center space-x-2">
-                            <Wand2 className="h-4 w-4 text-purple-500" />
-                            <span className="font-medium text-sm text-purple-700 dark:text-purple-300">
-                              Template Suggestion
-                            </span>
-                            <span className="text-xs bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
-                              {Math.round(message.templateSuggestion.confidence)}% match
-                            </span>
+                            <Loader className="h-4 w-4 animate-spin" />
+                            <span>{message.content}</span>
                           </div>
-                          <button
-                            onClick={() => {
-                              const template = message.templateSuggestion?.suggestedTemplate;
-                              if (template) {
-                                setSelectedTemplate(template.id);
-                                setInputText(prev =>
-                                  prev
-                                    ? `Apply ${template.name} template to: ${prev}`
-                                    : `Use the ${template.name} template`
-                                );
-                              }
-                            }}
-                            className="flex items-center space-x-1 px-2 py-1 text-xs bg-purple-100 dark:bg-purple-700 hover:bg-purple-200 dark:hover:bg-purple-600 text-purple-700 dark:text-purple-300 rounded transition-colors"
-                          >
-                            <span>Apply Template</span>
-                          </button>
-                        </div>
-                        <h4 className="font-medium text-purple-800 dark:text-purple-200 mb-1">
-                          {message.templateSuggestion.suggestedTemplate?.name || 'Unknown Template'}
-                        </h4>
-                        <p className="text-sm text-purple-600 dark:text-purple-400 mb-2">
-                          {message.templateSuggestion.suggestedTemplate?.description || 'No description available'}
-                        </p>
-                        <p className="text-xs text-purple-500 dark:text-purple-400">
-                          {message.templateSuggestion.reasoning || 'No reasoning provided'}
-                        </p>
+                        ) : (
+                          <div className="whitespace-pre-wrap">{message.content}</div>
+                        )}
                       </div>
-                    )}
 
-                    {/* Applied Template Info */}
-                    {message.appliedTemplate && (
-                      <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Check className="h-4 w-4 text-green-500" />
-                          <span className="font-medium text-sm text-green-700 dark:text-green-300">
-                            Template Applied: {message.appliedTemplate.appliedTemplate?.name || 'Unknown Template'}
-                          </span>
-                        </div>
-                        <div className="text-xs text-green-600 dark:text-green-400">
-                          <strong>Improvements:</strong>
-                          <ul className="list-disc list-inside mt-1">
-                            {(message.appliedTemplate.improvements || []).map((improvement, idx) => (
-                              <li key={idx}>{improvement}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      </div>
-                    )}
 
-                    {/* Prompt Transformation Display */}
-                    {message.promptTransformation && (
-                      <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-2">
-                            <TrendingUp className="h-4 w-4 text-blue-500" />
-                            <span className="font-medium text-sm text-blue-700 dark:text-blue-300">
-                              Professional Meta-Prompt
-                            </span>
-                            <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 px-2 py-1 rounded">
-                              Quality: {message.promptTransformation.qualityScore}/100
-                            </span>
+
+                      {/* Enhanced Prompts Display */}
+                      {(() => {
+                        // Get enhanced prompts from message or cache
+                        const enhancedPrompts = message.enhancedPrompts || enhancedPromptsCache[message.id] || [];
+                        const hasValidPrompts = Array.isArray(enhancedPrompts) && enhancedPrompts.length > 0;
+
+                        console.log('🔍 Enhanced Prompts Rendering Check:', {
+                          messageId: message.id,
+                          fromMessage: !!message.enhancedPrompts,
+                          fromCache: !!enhancedPromptsCache[message.id],
+                          finalCount: enhancedPrompts.length,
+                          hasValidPrompts
+                        });
+
+                        return hasValidPrompts ? (
+                          <div className="mt-6 space-y-4">
+                            <div className="flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 mb-3 px-1">
+                              <Sparkles size={16} />
+                              <span>Generated {enhancedPrompts.length} Professional Variations:</span>
+                            </div>
+                            <div className="grid grid-cols-1 gap-4">
+                              {enhancedPrompts.map((prompt, index) => (
+                                <div
+                                  key={prompt.id}
+                                  className="glass-panel bg-white/50 dark:bg-gray-800/30 border border-gray-200/50 dark:border-gray-700/50 rounded-2xl p-5 hover:bg-white/80 dark:hover:bg-gray-800/50 transition-all duration-300 group"
+                                >
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="p-1.5 bg-blue-500/10 rounded-lg">
+                                        <Sparkles className="h-4 w-4 text-blue-500" />
+                                      </div>
+                                      <span className="font-bold text-sm text-gray-900 dark:text-white capitalize">
+                                        {prompt.style.replace('_', ' ')}
+                                      </span>
+                                    </div>
+                                    <button
+                                      onClick={() => copyToClipboard(prompt.prompt)}
+                                      className="flex items-center space-x-2 px-3 py-1.5 text-xs font-bold bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 rounded-xl transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm"
+                                      title="Copy to clipboard"
+                                    >
+                                      <Copy className="h-3 w-3" />
+                                      <span>Copy</span>
+                                    </button>
+                                  </div>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 leading-relaxed italic">
+                                    {prompt.description}
+                                  </p>
+                                  <div className="bg-gray-900 dark:bg-black/40 rounded-xl p-4 text-sm text-blue-100 dark:text-blue-200 font-mono leading-relaxed border border-white/5">
+                                    {prompt.prompt}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(message.promptTransformation!.transformedPrompt);
-                            }}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 flex items-center space-x-1"
-                          >
-                            <Copy className="h-3 w-3" />
-                            <span>Copy</span>
-                          </button>
-                        </div>
+                        ) : null;
+                      })()}
 
-                        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 max-h-64 overflow-y-auto">
-                          <pre className="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono">
-                            {message.promptTransformation.transformedPrompt}
-                          </pre>
-                        </div>
-
-                        {/* Applied Techniques */}
-                        <div className="mt-3">
-                          <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Applied Techniques:</div>
-                          <div className="flex flex-wrap gap-1">
-                            {message.promptTransformation.appliedTechniques.map((technique, index) => (
-                              <span
-                                key={index}
-                                className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded"
-                              >
-                                {technique}
+                      {/* Template Suggestions */}
+                      {message.templateSuggestion && message.templateSuggestion.suggestedTemplate && (
+                        <div className="mt-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <Wand2 className="h-4 w-4 text-purple-500" />
+                              <span className="font-medium text-sm text-purple-700 dark:text-purple-300">
+                                Template Suggestion
                               </span>
-                            ))}
+                              <span className="text-xs bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-300 px-2 py-1 rounded">
+                                {Math.round(message.templateSuggestion.confidence)}% match
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                const template = message.templateSuggestion?.suggestedTemplate;
+                                if (template) {
+                                  setSelectedTemplate(template.id);
+                                  setInputText(prev =>
+                                    prev
+                                      ? `Apply ${template.name} template to: ${prev}`
+                                      : `Use the ${template.name} template`
+                                  );
+                                }
+                              }}
+                              className="flex items-center space-x-1 px-2 py-1 text-xs bg-purple-100 dark:bg-purple-700 hover:bg-purple-200 dark:hover:bg-purple-600 text-purple-700 dark:text-purple-300 rounded transition-colors"
+                            >
+                              <span>Apply Template</span>
+                            </button>
+                          </div>
+                          <h4 className="font-medium text-purple-800 dark:text-purple-200 mb-1">
+                            {message.templateSuggestion.suggestedTemplate?.name || 'Unknown Template'}
+                          </h4>
+                          <p className="text-sm text-purple-600 dark:text-purple-400 mb-2">
+                            {message.templateSuggestion.suggestedTemplate?.description || 'No description available'}
+                          </p>
+                          <p className="text-xs text-purple-500 dark:text-purple-400">
+                            {message.templateSuggestion.reasoning || 'No reasoning provided'}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Applied Template Info */}
+                      {message.appliedTemplate && (
+                        <div className="mt-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg p-4">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Check className="h-4 w-4 text-green-500" />
+                            <span className="font-medium text-sm text-green-700 dark:text-green-300">
+                              Template Applied: {message.appliedTemplate.appliedTemplate?.name || 'Unknown Template'}
+                            </span>
+                          </div>
+                          <div className="text-xs text-green-600 dark:text-green-400">
+                            <strong>Improvements:</strong>
+                            <ul className="list-disc list-inside mt-1">
+                              {(message.appliedTemplate.improvements || []).map((improvement, idx) => (
+                                <li key={idx}>{improvement}</li>
+                              ))}
+                            </ul>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Metadata */}
-                    {message.metadata && message.type === 'ai' && !message.isLoading && (
-                      <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                        {message.metadata.processingTime && (
-                          <span>Processed in {message.metadata.processingTime}ms</span>
-                        )}
-                        {message.metadata.promptCategory && (
-                          <span className="ml-2 capitalize">• {message.metadata.promptCategory.replace('_', ' ')}</span>
-                        )}
-                      </div>
-                    )}
+                      {/* Prompt Transformation Display */}
+                      {message.promptTransformation && (
+                        <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-2">
+                              <TrendingUp className="h-4 w-4 text-blue-500" />
+                              <span className="font-medium text-sm text-blue-700 dark:text-blue-300">
+                                Professional Meta-Prompt
+                              </span>
+                              <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 px-2 py-1 rounded">
+                                Quality: {message.promptTransformation.qualityScore}/100
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(message.promptTransformation!.transformedPrompt);
+                              }}
+                              className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 flex items-center space-x-1"
+                            >
+                              <Copy className="h-3 w-3" />
+                              <span>Copy</span>
+                            </button>
+                          </div>
 
-                    {/* Timestamp */}
-                    <div className={`mt-1 text-xs text-gray-500 dark:text-gray-400 ${
-                      message.type === 'user' ? 'text-right' : ''
-                    }`}>
-                      {message.timestamp.toLocaleTimeString()}
+                          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3 max-h-64 overflow-y-auto">
+                            <pre className="text-xs text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-mono">
+                              {message.promptTransformation.transformedPrompt}
+                            </pre>
+                          </div>
+
+                          {/* Applied Techniques */}
+                          <div className="mt-3">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Applied Techniques:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {message.promptTransformation.appliedTechniques.map((technique, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 rounded"
+                                >
+                                  {technique}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Metadata */}
+                      {message.metadata && message.type === 'ai' && !message.isLoading && (
+                        <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          {message.metadata.processingTime && (
+                            <span>Processed in {message.metadata.processingTime}ms</span>
+                          )}
+                          {message.metadata.promptCategory && (
+                            <span className="ml-2 capitalize">• {message.metadata.promptCategory.replace('_', ' ')}</span>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Timestamp */}
+                      <div className={`mt-1 text-xs text-gray-500 dark:text-gray-400 ${message.type === 'user' ? 'text-right' : ''
+                        }`}>
+                        {message.timestamp.toLocaleTimeString()}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
 
-          {/* Input Area */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4">
-            {/* Template Selector */}
-            {showTemplateSelector && (
-              <div className="mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h4 className="font-medium text-gray-900 dark:text-white">Choose a Template</h4>
+            {/* Input Area */}
+            <div className="border-t border-gray-200 dark:border-gray-700 p-4">
+              {/* Template Selector */}
+              {showTemplateSelector && (
+                <div className="mb-4 bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-medium text-gray-900 dark:text-white">Choose a Template</h4>
+                    <button
+                      onClick={() => setShowTemplateSelector(false)}
+                      className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                    {(PromptTemplateService.getCategories() || []).map(category => (
+                      <div key={category} className="mb-3">
+                        <h5 className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
+                          {category.replace('_', ' ')}
+                        </h5>
+                        {(PromptTemplateService.getTemplatesByCategory(category) || []).map(template => {
+                          const usageStats = PromptTemplateService.getUsageStatistics() || {};
+                          const usageCount = usageStats[template.id] || 0;
+                          return (
+                            <button
+                              key={template.id}
+                              onClick={() => {
+                                setSelectedTemplate(template.id);
+                                setShowTemplateSelector(false);
+                                setInputText(prev =>
+                                  prev
+                                    ? `Use the ${template.name} template for: ${prev}`
+                                    : `Use the ${template.name} template`
+                                );
+                              }}
+                              className="w-full text-left p-2 text-sm bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-gray-600 rounded mb-1 transition-colors"
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="font-medium text-gray-900 dark:text-white">{template.name}</div>
+                                <div className="flex items-center space-x-1">
+                                  {usageCount > 0 && (
+                                    <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 px-1 rounded">
+                                      {usageCount}
+                                    </span>
+                                  )}
+                                  <span className="text-xs bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 px-1 rounded">
+                                    {template.effectiveness}%
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{template.description}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* File Preview */}
+              {selectedFile && (
+                <div className="mb-3 flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <ImageIcon className="h-4 w-4 text-blue-500" />
+                  <span className="text-sm text-blue-700 dark:text-blue-300">{selectedFile.name}</span>
                   <button
-                    onClick={() => setShowTemplateSelector(false)}
-                    className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    onClick={() => setSelectedFile(null)}
+                    className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-300"
                   >
                     ×
                   </button>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-60 overflow-y-auto">
-                  {(PromptTemplateService.getCategories() || []).map(category => (
-                    <div key={category} className="mb-3">
-                      <h5 className="text-xs font-medium text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-2">
-                        {category.replace('_', ' ')}
-                      </h5>
-                      {(PromptTemplateService.getTemplatesByCategory(category) || []).map(template => {
-                        const usageStats = PromptTemplateService.getUsageStatistics() || {};
-                        const usageCount = usageStats[template.id] || 0;
-                        return (
-                          <button
-                            key={template.id}
-                            onClick={() => {
-                              setSelectedTemplate(template.id);
-                              setShowTemplateSelector(false);
-                              setInputText(prev =>
-                                prev
-                                  ? `Use the ${template.name} template for: ${prev}`
-                                  : `Use the ${template.name} template`
-                              );
-                            }}
-                            className="w-full text-left p-2 text-sm bg-white dark:bg-gray-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-gray-200 dark:border-gray-600 rounded mb-1 transition-colors"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="font-medium text-gray-900 dark:text-white">{template.name}</div>
-                              <div className="flex items-center space-x-1">
-                                {usageCount > 0 && (
-                                  <span className="text-xs bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300 px-1 rounded">
-                                    {usageCount}
-                                  </span>
-                                )}
-                                <span className="text-xs bg-green-100 dark:bg-green-800 text-green-600 dark:text-green-300 px-1 rounded">
-                                  {template.effectiveness}%
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-xs text-gray-600 dark:text-gray-400 truncate">{template.description}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* File Preview */}
-            {selectedFile && (
-              <div className="mb-3 flex items-center space-x-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <ImageIcon className="h-4 w-4 text-blue-500" />
-                <span className="text-sm text-blue-700 dark:text-blue-300">{selectedFile.name}</span>
+              <form onSubmit={handleSubmit} className="flex items-end space-x-3">
+                {/* Actions Group */}
+                <div className="flex items-center space-x-1 glass-panel bg-white/50 dark:bg-gray-800/50 p-1.5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
+                  {/* Template Selector Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowTemplateSelector(!showTemplateSelector)}
+                    disabled={isProcessing}
+                    className={`flex-shrink-0 p-2.5 rounded-xl transition-all duration-300 disabled:opacity-50 ${showTemplateSelector
+                        ? 'text-white bg-blue-500 shadow-lg shadow-blue-500/20'
+                        : 'text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20'
+                      }`}
+                    title="Choose a template"
+                  >
+                    <Wand2 className="h-5 w-5" />
+                  </button>
+
+                  {/* Prompt Transformation Button */}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!inputText.trim()) return;
+
+                      try {
+                        const transformation = AIService.transformPrompt(inputText.trim());
+                        const validation = PromptQualityValidator.validatePrompt(transformation);
+
+                        const transformationMessage: ChatMessage = {
+                          id: `transformation_${Date.now()}`,
+                          type: 'ai',
+                          content: `I've transformed your prompt into a professional meta-prompt with a quality score of ${transformation.qualityScore}/100.`,
+                          timestamp: new Date(),
+                          promptTransformation: transformation,
+                          qualityValidation: validation
+                        };
+
+                        setMessages(prev => [...prev, transformationMessage]);
+                        setInputText('');
+                      } catch (error: any) {
+                        console.error('Transformation failed:', error);
+                      }
+                    }}
+                    disabled={isProcessing || !inputText.trim()}
+                    className="flex-shrink-0 p-2.5 rounded-xl text-gray-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 disabled:opacity-50"
+                    title="Transform to meta-prompt"
+                  >
+                    <TrendingUp className="h-5 w-5" />
+                  </button>
+
+                  {/* File Upload Button */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isProcessing}
+                    className="flex-shrink-0 p-2.5 rounded-xl text-gray-500 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all duration-300 disabled:opacity-50"
+                    title="Upload image for analysis"
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                  </button>
+                </div>
+
+                {/* Text Input Container */}
+                <div className="flex-1 relative group">
+                  <textarea
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    placeholder={selectedFile ? "Describe what you want to create with this image..." : "Ask me anything..."}
+                    disabled={isProcessing}
+                    rows={1}
+                    className="w-full px-5 py-3.5 glass-panel bg-white/50 dark:bg-gray-800/50 border border-gray-200/50 dark:border-gray-700/50 rounded-2xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white dark:focus:bg-gray-800 dark:text-white resize-none disabled:opacity-50 transition-all duration-300 pr-12 shadow-sm"
+                    style={{ minHeight: '52px', maxHeight: '160px' }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
+                  />
+                  <div className="absolute right-3 bottom-3 text-[10px] font-bold text-gray-400 group-focus-within:text-blue-500 transition-colors uppercase tracking-widest pointer-events-none">
+                    Enter
+                  </div>
+                </div>
+
+                {/* Send Button */}
                 <button
-                  onClick={() => setSelectedFile(null)}
-                  className="text-blue-500 hover:text-blue-700 dark:hover:text-blue-300"
+                  type="submit"
+                  disabled={(!inputText.trim() && !selectedFile) || isProcessing}
+                  className="flex-shrink-0 p-4 bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400 dark:disabled:from-gray-700 dark:disabled:to-gray-800 text-white rounded-2xl shadow-lg shadow-blue-500/25 transition-all duration-300 hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  title="Send message"
                 >
-                  ×
+                  {isProcessing ? (
+                    <Loader className="h-6 w-6 animate-spin" />
+                  ) : (
+                    <Send className="h-6 w-6" />
+                  )}
+                </button>
+
+                {/* Hidden File Input */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </form>
+
+
+              {/* Quick Actions */}
+              <div className="mt-4 flex flex-wrap gap-2">
+                <button
+                  onClick={() => setInputText("Help me develop a more engaging writing style for my blog")}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-xs font-bold glass-panel bg-purple-50/50 dark:bg-purple-900/10 hover:bg-purple-100 dark:hover:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 border border-purple-200/50 dark:border-purple-800/30"
+                >
+                  📝 Writing Style
+                </button>
+                <button
+                  onClick={() => setInputText("Create a content strategy for my sustainable fashion brand")}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-xs font-bold glass-panel bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 border border-blue-200/50 dark:border-blue-800/30"
+                >
+                  📊 Content Strategy
+                </button>
+                <button
+                  onClick={() => setInputText("Plan a 2-week budget trip to Southeast Asia for $1500")}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-xs font-bold glass-panel bg-green-50/50 dark:bg-green-900/10 hover:bg-green-100 dark:hover:bg-green-900/20 text-green-700 dark:text-green-300 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 border border-green-200/50 dark:border-green-800/30"
+                >
+                  ✈️ Travel Planning
+                </button>
+                <button
+                  onClick={() => setInputText("Help me set goals for launching my online coaching business")}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-xs font-bold glass-panel bg-orange-50/50 dark:bg-orange-900/10 hover:bg-orange-100 dark:hover:bg-orange-900/20 text-orange-700 dark:text-orange-300 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 border border-orange-200/50 dark:border-orange-800/30"
+                >
+                  🎯 Goal Setting
+                </button>
+                <button
+                  onClick={() => setShowTemplateSelector(true)}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-xs font-bold glass-panel bg-gray-100/50 dark:bg-gray-700/50 hover:bg-gray-200/50 dark:hover:bg-gray-600/50 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 border border-gray-200/50 dark:border-gray-700/50"
+                >
+                  🔧 All Templates
                 </button>
               </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="flex items-end space-x-3">
-              {/* Template Selector Button */}
-              <button
-                type="button"
-                onClick={() => setShowTemplateSelector(!showTemplateSelector)}
-                disabled={isProcessing}
-                className={`flex-shrink-0 p-2 transition-colors disabled:opacity-50 ${
-                  showTemplateSelector
-                    ? 'text-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-                }`}
-                title="Choose a template"
-              >
-                <Wand2 className="h-5 w-5" />
-              </button>
-
-              {/* Prompt Transformation Button */}
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!inputText.trim()) return;
-
-                  try {
-                    const transformation = AIService.transformPrompt(inputText.trim());
-                    const validation = PromptQualityValidator.validatePrompt(transformation);
-
-                    const transformationMessage: ChatMessage = {
-                      id: `transformation_${Date.now()}`,
-                      type: 'ai',
-                      content: `I've transformed your prompt into a professional meta-prompt with a quality score of ${transformation.qualityScore}/100.`,
-                      timestamp: new Date(),
-                      promptTransformation: transformation,
-                      qualityValidation: validation
-                    };
-
-                    setMessages(prev => [...prev, transformationMessage]);
-                    setInputText('');
-                  } catch (error: any) {
-                    console.error('Transformation failed:', error);
-                  }
-                }}
-                disabled={isProcessing || !inputText.trim()}
-                className="flex-shrink-0 p-2 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
-                title="Transform to meta-prompt"
-              >
-                <TrendingUp className="h-5 w-5" />
-              </button>
-
-              {/* File Upload Button */}
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isProcessing}
-                className="flex-shrink-0 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
-                title="Upload image for analysis"
-              >
-                <ImageIcon className="h-5 w-5" />
-              </button>
-
-              {/* Text Input */}
-              <div className="flex-1">
-                <textarea
-                  value={inputText}
-                  onChange={(e) => setInputText(e.target.value)}
-                  placeholder={selectedFile ? "Describe what you want to create with this image..." : "Describe what you want to create, or ask me anything about prompt engineering..."}
-                  disabled={isProcessing}
-                  rows={1}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white resize-none disabled:opacity-50"
-                  style={{ minHeight: '48px', maxHeight: '120px' }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleSubmit(e);
-                    }
-                  }}
-                />
-              </div>
-
-              {/* Send Button */}
-              <button
-                type="submit"
-                disabled={(!inputText.trim() && !selectedFile) || isProcessing}
-                className="flex-shrink-0 p-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
-                title="Send message"
-              >
-                {isProcessing ? (
-                  <Loader className="h-5 w-5 animate-spin" />
-                ) : (
-                  <Send className="h-5 w-5" />
-                )}
-              </button>
-
-              {/* Hidden File Input */}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </form>
-
-            {/* Quick Actions */}
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                onClick={() => setInputText("Help me develop a more engaging writing style for my blog")}
-                disabled={isProcessing}
-                className="px-3 py-1 text-xs bg-purple-100 dark:bg-purple-700 hover:bg-purple-200 dark:hover:bg-purple-600 text-purple-700 dark:text-purple-300 rounded-full transition-colors disabled:opacity-50"
-              >
-                📝 Writing Style
-              </button>
-              <button
-                onClick={() => setInputText("Create a content strategy for my sustainable fashion brand")}
-                disabled={isProcessing}
-                className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-700 hover:bg-blue-200 dark:hover:bg-blue-600 text-blue-700 dark:text-blue-300 rounded-full transition-colors disabled:opacity-50"
-              >
-                📊 Content Strategy
-              </button>
-              <button
-                onClick={() => setInputText("Plan a 2-week budget trip to Southeast Asia for $1500")}
-                disabled={isProcessing}
-                className="px-3 py-1 text-xs bg-green-100 dark:bg-green-700 hover:bg-green-200 dark:hover:bg-green-600 text-green-700 dark:text-green-300 rounded-full transition-colors disabled:opacity-50"
-              >
-                ✈️ Travel Planning
-              </button>
-              <button
-                onClick={() => setInputText("Help me set goals for launching my online coaching business")}
-                disabled={isProcessing}
-                className="px-3 py-1 text-xs bg-orange-100 dark:bg-orange-700 hover:bg-orange-200 dark:hover:bg-orange-600 text-orange-700 dark:text-orange-300 rounded-full transition-colors disabled:opacity-50"
-              >
-                🎯 Goal Setting
-              </button>
-              <button
-                onClick={() => setShowTemplateSelector(true)}
-                disabled={isProcessing}
-                className="px-3 py-1 text-xs bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full transition-colors disabled:opacity-50"
-              >
-                🔧 All Templates
-              </button>
             </div>
           </div>
-        </div>
         </div>
 
         {/* Usage Tracker Sidebar */}

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Sparkles, 
-  Camera, 
-  MessageCircle, 
-  Wand2, 
-  Image as ImageIcon, 
-  Brain, 
-  Zap, 
+import {
+  Sparkles,
+  Camera,
+  MessageCircle,
+  Wand2,
+  Image as ImageIcon,
+  Brain,
+  Zap,
   ArrowRight,
   Star,
   Lightbulb
@@ -107,15 +107,15 @@ const AIApps: React.FC = () => {
     { id: 'studio', label: 'Studio', count: aiApps.filter(app => app.category === 'studio').length }
   ];
 
-  const filteredApps = selectedCategory === 'all' 
-    ? aiApps 
+  const filteredApps = selectedCategory === 'all'
+    ? aiApps
     : aiApps.filter(app => app.category === selectedCategory);
 
   const featuredApps = aiApps.filter(app => app.featured && !app.comingSoon);
 
   const handleAppClick = (app: AIApp) => {
     if (app.comingSoon) return;
-    
+
     if (app.route) {
       navigate(app.route);
     } else if (app.component) {
@@ -131,7 +131,7 @@ const AIApps: React.FC = () => {
     if (!app.component) return null;
 
     const Component = app.component;
-    
+
     switch (app.id) {
       case 'prompt-enhancer':
         return (
@@ -154,66 +154,64 @@ const AIApps: React.FC = () => {
     <PageLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="flex items-center justify-center space-x-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-600 rounded-xl">
-              <Brain className="w-8 h-8 text-white" />
+        <div className="text-center mb-16">
+          <div className="flex flex-col items-center justify-center space-y-4 mb-6">
+            <div className="p-4 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-2xl shadow-xl shadow-blue-500/20 animate-pulse-slow">
+              <Brain className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900 dark:text-white">
-              AI Apps
+            <h1 className="text-5xl font-extrabold font-outfit tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-gray-900 via-gray-700 to-gray-900 dark:from-white dark:via-gray-200 dark:to-white">
+              AI Intelligent Apps
             </h1>
           </div>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-            Discover and explore our collection of AI-powered tools for prompt engineering, 
-            image analysis, and content creation
+          <p className="text-xl font-medium text-gray-500 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            Unleash the power of professional prompt engineering with our curated suite of AI-driven creative tools.
           </p>
         </div>
 
         {/* AI Service Status */}
-        <div className="mb-8">
-          <div className={`inline-flex items-center space-x-2 px-4 py-2 rounded-lg ${
-            AIService.isAIAvailable() 
-              ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
-          }`}>
-            <div className={`w-2 h-2 rounded-full ${
-              AIService.isAIAvailable() ? 'bg-green-500' : 'bg-yellow-500'
-            }`} />
-            <span className="text-sm font-medium">
-              {AIService.isAIAvailable() ? 'AI Services Online' : 'Demo Mode - Limited Functionality'}
+        <div className="mb-12 flex justify-center">
+          <div className={`inline-flex items-center space-x-3 px-5 py-2.5 rounded-2xl glass-panel border shadow-sm ${AIService.isAIAvailable()
+              ? 'bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20'
+              : 'bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20'
+            }`}>
+            <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${AIService.isAIAvailable() ? 'bg-green-500' : 'bg-yellow-500'
+              }`} />
+            <span className="text-sm font-bold uppercase tracking-widest">
+              {AIService.isAIAvailable() ? 'AI Infrastructure Online' : 'Simulation Mode Active'}
             </span>
           </div>
         </div>
 
         {/* Featured Apps */}
         {featuredApps.length > 0 && (
-          <div className="mb-12">
-            <div className="flex items-center space-x-2 mb-6">
-              <Star className="h-6 w-6 text-yellow-500" />
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Featured Apps</h2>
+          <div className="mb-16">
+            <div className="flex items-center space-x-3 mb-8 px-2">
+              <div className="p-2 bg-yellow-500/10 rounded-lg">
+                <Star className="h-6 w-6 text-yellow-500" />
+              </div>
+              <h2 className="text-2xl font-black font-outfit text-gray-900 dark:text-white uppercase tracking-tight">Premium Workspace Tools</h2>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {featuredApps.map((app) => (
                 <div
                   key={app.id}
                   onClick={() => handleAppClick(app)}
-                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all cursor-pointer"
+                  className="group relative glass-card bg-white/40 dark:bg-gray-800/40 rounded-3xl p-8 border border-gray-200/50 dark:border-gray-700/50 hover:bg-white/60 dark:hover:bg-gray-800/60 transition-all duration-500 cursor-pointer shadow-xl hover:shadow-2xl hover:scale-[1.03] active:scale-95 overflow-hidden"
                 >
-                  <div className="flex items-start space-x-4">
-                    <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg group-hover:scale-110 transition-transform">
-                      <app.icon className="h-6 w-6 text-white" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                  <div className="relative flex flex-col items-start">
+                    <div className="p-4 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl shadow-lg shadow-blue-500/20 group-hover:rotate-6 transition-transform duration-500 mb-6">
+                      <app.icon className="h-8 w-8 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        {app.title}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
-                        {app.description}
-                      </p>
-                      <div className="flex items-center text-blue-600 dark:text-blue-400 text-sm font-medium">
-                        <span>Try it now</span>
-                        <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                      </div>
+                    <h3 className="text-2xl font-black font-outfit text-gray-900 dark:text-white mb-3 tracking-tight">
+                      {app.title}
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-base font-medium mb-6 leading-relaxed">
+                      {app.description}
+                    </p>
+                    <div className="flex items-center text-blue-500 dark:text-blue-400 text-sm font-black uppercase tracking-widest mt-auto">
+                      <span>Launch App</span>
+                      <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-2 transition-transform duration-300" />
                     </div>
                   </div>
                 </div>
@@ -223,69 +221,71 @@ const AIApps: React.FC = () => {
         )}
 
         {/* Category Filter */}
-        <div className="mb-8">
-          <div className="flex flex-wrap gap-2">
+        <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
+          <h3 className="text-xl font-black font-outfit text-gray-900 dark:text-white uppercase tracking-tight">Explorer Tools</h3>
+          <div className="flex flex-wrap gap-2 glass-panel bg-gray-100/50 dark:bg-gray-800/50 p-1.5 rounded-2xl border border-gray-200/50 dark:border-gray-700/50">
             {categories.map((category) => (
               <button
                 key={category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedCategory === category.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
+                className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${selectedCategory === category.id
+                    ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-lg scale-105'
+                    : 'text-gray-500 hover:text-gray-900 dark:hover:text-gray-300'
+                  }`}
               >
-                {category.label} ({category.count})
+                {category.label}
               </button>
             ))}
           </div>
         </div>
 
         {/* All Apps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredApps.map((app) => (
             <div
               key={app.id}
               onClick={() => handleAppClick(app)}
-              className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 transition-all ${
-                app.comingSoon 
-                  ? 'opacity-60 cursor-not-allowed' 
-                  : 'hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 cursor-pointer'
-              }`}
+              className={`glass-panel p-7 rounded-3xl border transition-all duration-300 flex flex-col h-full ${app.comingSoon
+                  ? 'opacity-50 grayscale bg-gray-100/30 dark:bg-gray-800/30 border-gray-200/30 dark:border-gray-700/30 cursor-not-allowed'
+                  : 'bg-white/40 dark:bg-gray-800/40 border-gray-200/50 dark:border-gray-700/50 hover:bg-white/80 dark:hover:bg-gray-800/80 hover:shadow-2xl hover:scale-[1.02] cursor-pointer'
+                }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-lg ${
-                  app.comingSoon 
-                    ? 'bg-gray-100 dark:bg-gray-700' 
-                    : 'bg-gradient-to-br from-blue-500 to-purple-600'
-                }`}>
-                  <app.icon className={`h-6 w-6 ${
-                    app.comingSoon ? 'text-gray-400' : 'text-white'
-                  }`} />
+              <div className="flex items-start justify-between mb-6">
+                <div className={`p-3.5 rounded-2xl shadow-sm ${app.comingSoon
+                    ? 'bg-gray-100 dark:bg-gray-700'
+                    : 'bg-gradient-to-br from-blue-500/10 to-purple-600/10'
+                  }`}>
+                  <app.icon className={`h-7 w-7 ${app.comingSoon ? 'text-gray-400' : 'text-blue-500 dark:text-blue-400'
+                    }`} />
                 </div>
                 {app.featured && !app.comingSoon && (
-                  <Star className="h-5 w-5 text-yellow-500" />
+                  <div className="bg-yellow-500/10 p-1.5 rounded-lg">
+                    <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                  </div>
                 )}
                 {app.comingSoon && (
-                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
-                    Coming Soon
+                  <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-gray-200/50 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 rounded-lg">
+                    Pipeline
                   </span>
                 )}
               </div>
-              
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+
+              <h3 className="text-xl font-black font-outfit text-gray-900 dark:text-white mb-2 tracking-tight">
                 {app.title}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-6 leading-relaxed flex-1">
                 {app.description}
               </p>
-              
-              <div className="flex items-center justify-between">
-                <span className="px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full capitalize">
+
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-200/30 dark:border-gray-700/30">
+                <span className="px-3 py-1 text-[10px] font-black uppercase tracking-widest bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-lg">
                   {app.category}
                 </span>
                 {!app.comingSoon && (
-                  <ArrowRight className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center text-blue-500 text-xs font-black uppercase tracking-widest">
+                    <span>Open</span>
+                    <ArrowRight className="h-3 w-3 ml-1" />
+                  </div>
                 )}
               </div>
             </div>

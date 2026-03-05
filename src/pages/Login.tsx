@@ -54,34 +54,36 @@ const Login: React.FC = () => {
       />
       <div className="min-h-screen flex">
         {/* Left Panel - Decorative */}
-        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-slate-950">
           {/* Animated Background Elements */}
           <div className="absolute inset-0">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse" />
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-blue-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse-slow" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-[100px]" />
           </div>
 
           {/* Grid Pattern Overlay */}
-          <div className="absolute inset-0 opacity-10" style={{
-            backgroundImage: 'linear-gradient(rgba(255,255,255,.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px)',
-            backgroundSize: '50px 50px'
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)',
+            backgroundSize: '40px 40px'
           }} />
 
           {/* Content */}
-          <div className="relative z-10 flex flex-col justify-center items-center p-12 text-white">
-            <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center mb-8 shadow-2xl">
-              <Sparkles size={40} className="text-white" />
+          <div className="relative z-10 flex flex-col justify-center items-center p-16 text-white max-w-2xl mx-auto">
+            <div className="w-24 h-24 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 rounded-[2rem] flex items-center justify-center mb-10 shadow-2xl shadow-blue-500/20 ring-1 ring-white/20">
+              <Sparkles size={48} className="text-white" />
             </div>
-            <h1 className="text-4xl font-bold mb-4 text-center">Welcome Back</h1>
-            <p className="text-lg text-gray-300 text-center max-w-md leading-relaxed">
-              Unlock the power of AI prompts. Create, share, and discover prompts for Nano Banana, Gemini, Midjourney, and more.
+            <h1 className="text-6xl font-black font-outfit tracking-tight mb-6 text-center leading-tight">
+              Design the <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">Future</span> of AI
+            </h1>
+            <p className="text-xl text-gray-400 text-center font-medium leading-relaxed mb-12">
+              Join the elite community of prompt engineers. Master the art of AI communication.
             </p>
 
             {/* Feature Pills */}
-            <div className="mt-12 flex flex-wrap justify-center gap-3">
-              {['Nano Banana', 'Gemini AI', 'ChatGPT', 'Midjourney'].map((tag) => (
-                <span key={tag} className="px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm text-sm font-medium border border-white/20">
+            <div className="flex flex-wrap justify-center gap-4">
+              {['Nano Banana', 'Gemini Pro', 'GPT-4o', 'Midjourney v6'].map((tag) => (
+                <span key={tag} className="px-6 py-2.5 rounded-2xl glass-panel bg-white/5 dark:bg-white/5 backdrop-blur-xl text-sm font-black uppercase tracking-widest border border-white/10 shadow-xl transition-transform hover:scale-110">
                   {tag}
                 </span>
               ))}
@@ -99,17 +101,17 @@ const Login: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
-                Sign In
+            <div className="text-center mb-10">
+              <h2 className="text-4xl font-black font-outfit tracking-tight text-gray-900 dark:text-white mb-3">
+                Welcome back
               </h2>
-              <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Don't have an account?{' '}
+              <p className="text-gray-500 dark:text-gray-400 font-medium">
+                New to PromptShare?{' '}
                 <Link
                   to="/auth/signup"
-                  className="font-semibold text-blue-600 hover:text-blue-500 dark:text-blue-400 transition-colors"
+                  className="font-bold text-blue-600 hover:text-blue-500 dark:text-blue-400 transition-all underline decoration-2 underline-offset-4 decoration-blue-500/30 hover:decoration-blue-500"
                 >
-                  Create one free
+                  Create free account
                 </Link>
               </p>
             </div>
@@ -125,9 +127,9 @@ const Login: React.FC = () => {
               <button
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="group relative w-full flex items-center justify-center gap-3 py-3.5 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-xl text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="group relative w-full flex items-center justify-center gap-4 py-4 px-6 border border-gray-200 dark:border-gray-700 text-sm font-bold rounded-2xl text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 shadow-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
               >
-                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24">
                   <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
@@ -149,14 +151,14 @@ const Login: React.FC = () => {
               </div>
 
               {/* Email Form */}
-              <form className="space-y-5" onSubmit={handleEmailLogin}>
+              <form className="space-y-6" onSubmit={handleEmailLogin}>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="email" className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 px-1">
                     Email address
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Mail className="h-5 w-5 text-gray-400" />
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
+                      <Mail className="h-5 w-5" />
                     </div>
                     <input
                       id="email"
@@ -166,19 +168,19 @@ const Login: React.FC = () => {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="block w-full pl-12 pr-4 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      className="block w-full pl-14 pr-5 py-4 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-white bg-white dark:bg-gray-800/50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
                       placeholder="you@example.com"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="password" className="block text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 px-1">
                     Password
                   </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
+                  <div className="relative group">
+                    <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-500">
+                      <Lock className="h-5 w-5" />
                     </div>
                     <input
                       id="password"
@@ -188,12 +190,12 @@ const Login: React.FC = () => {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="block w-full pl-12 pr-12 py-3.5 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white bg-white dark:bg-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                      className="block w-full pl-14 pr-14 py-4 border border-gray-200 dark:border-gray-700 rounded-2xl text-gray-900 dark:text-white bg-white dark:bg-gray-800/50 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300"
                       placeholder="••••••••"
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="absolute inset-y-0 right-0 pr-5 flex items-center text-gray-400 hover:text-blue-500 transition-colors"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -213,14 +215,17 @@ const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="group relative w-full flex items-center justify-center gap-2 py-3.5 px-4 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-500/25"
+                  className="group relative w-full flex items-center justify-center gap-3 py-4.5 px-6 text-base font-black uppercase tracking-widest rounded-2xl text-white bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 hover:via-blue-600 hover:to-purple-600 shadow-xl shadow-blue-500/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                 >
                   {loading ? (
-                    <span>Signing in...</span>
+                    <span className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Authenticating...
+                    </span>
                   ) : (
                     <>
-                      <span>Sign in</span>
-                      <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                      <span>Secure Login</span>
+                      <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform duration-300" />
                     </>
                   )}
                 </button>
