@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /
+
+# Disallow private/auth routes
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /auth/callback
+
+# Sitemap location
+Sitemap: https://promptshareai1.vercel.app/sitemap.xml

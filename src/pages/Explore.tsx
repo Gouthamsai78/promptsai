@@ -44,8 +44,8 @@ const Explore: React.FC = () => {
     if (searchTerm === '') return true;
 
     const matchesSearch = tool.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (tool.tags && tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+      tool.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (tool.tags && tool.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
     return matchesSearch;
   });
 
@@ -53,12 +53,12 @@ const Explore: React.FC = () => {
     <PageLayout>
       <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <div className="mb-8 pt-4 md:pt-6">
+          <h1 className="text-3xl md:text-4xl font-extrabold font-outfit text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 tracking-tight mb-3">
             Explore AI Tools
           </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Discover amazing AI tools shared by the community
+          <p className="text-gray-600 dark:text-gray-400 text-lg">
+            Discover amazing AI tools shared by the community.
           </p>
         </div>
 
@@ -88,17 +88,16 @@ const Explore: React.FC = () => {
           />
 
           {/* Category Filter */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-4">
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 disabled={loading}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  selectedCategory === category
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
-                }`}
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${selectedCategory === category
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30'
+                    : 'glass-panel text-gray-700 dark:text-gray-300 hover:bg-white/80 dark:hover:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50'
+                  }`}
               >
                 {category}
               </button>
@@ -144,20 +143,25 @@ const Explore: React.FC = () => {
         )}
 
         {/* Add Tool CTA */}
-        <div className="mt-12 text-center">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl p-8 text-white">
-            <h3 className="text-xl font-bold mb-2">
-              Know an amazing AI tool?
-            </h3>
-            <p className="mb-4 opacity-90">
-              Share it with the community and help others discover great tools
-            </p>
-            <button
-              onClick={() => navigate('/create')}
-              className="px-6 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
-            >
-              Add New Tool
-            </button>
+        <div className="mt-12 mb-8 text-center">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl p-8 md:p-12 text-white shadow-2xl shadow-blue-500/20 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 -mt-4 -mr-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:bg-white/20 transition-colors duration-500" />
+            <div className="absolute bottom-0 left-0 -mb-4 -ml-4 w-32 h-32 bg-purple-900/20 rounded-full blur-2xl group-hover:bg-purple-900/30 transition-colors duration-500" />
+
+            <div className="relative z-10">
+              <h3 className="text-2xl md:text-3xl font-bold font-outfit mb-3">
+                Know an amazing AI tool?
+              </h3>
+              <p className="mb-6 opacity-90 text-lg max-w-lg mx-auto">
+                Share it with the community and help others discover great resources.
+              </p>
+              <button
+                onClick={() => navigate('/create')}
+                className="px-8 py-3 bg-white text-blue-600 font-bold rounded-xl shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all duration-300"
+              >
+                Add New Tool
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, X, Filter, TrendingUp } from 'lucide-react';
+import { Search, X, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { DatabaseService } from '../services/database';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -27,41 +28,36 @@ const SearchBar: React.FC<SearchBarProps> = ({
   const [searchQuery, setSearchQuery] = useState(value);
   const [isFocused, setIsFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [trendingTags, setTrendingTags] = useState<string[]>([]);
 
-  // Trending searches (mock data - could be fetched from API)
-  const trendingSearches = [
-    'AI art prompts',
-    'Character design',
-    'Logo creation',
-    'Photography styles',
-    'Digital painting',
-    'Concept art'
-  ];
+  // Fetch real trending tags from the database on mount
+  useEffect(() => {
+    if (!showTrending) return;
+    DatabaseService.getTrendingTags(8).then(tags => {
+      setTrendingTags(tags);
+    });
+  }, [showTrending]);
 
   // Update internal state when external value changes
   useEffect(() => {
     setSearchQuery(value);
   }, [value]);
 
-  // Handle input change
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setSearchQuery(newValue);
     onChange?.(newValue);
   };
 
-  // Handle search submission
   const handleSearch = (query?: string) => {
     const searchTerm = query || searchQuery;
     if (searchTerm.trim()) {
       onSearch?.(searchTerm.trim());
-      // Navigate to search page with query
       navigate(`/search?q=${encodeURIComponent(searchTerm.trim())}`);
       setShowSuggestions(false);
     }
   };
 
-  // Handle key press
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
@@ -71,50 +67,40 @@ const SearchBar: React.FC<SearchBarProps> = ({
     }
   };
 
-  // Handle clear search
   const handleClear = () => {
     setSearchQuery('');
     onChange?.('');
     setShowSuggestions(false);
   };
 
-  // Handle focus
   const handleFocus = () => {
     setIsFocused(true);
-    if (showTrending && searchQuery.length === 0) {
+    if (showTrending && searchQuery.length === 0 && trendingTags.length > 0) {
       setShowSuggestions(true);
     }
   };
 
-  // Handle blur
   const handleBlur = () => {
-    // Delay hiding suggestions to allow clicking on them
     setTimeout(() => {
       setIsFocused(false);
       setShowSuggestions(false);
     }, 200);
   };
 
-  // Handle trending search click
-  const handleTrendingClick = (trend: string) => {
-    setSearchQuery(trend);
-    onChange?.(trend);
-    handleSearch(trend);
+  const handleTagClick = (tag: string) => {
+    setSearchQuery(tag);
+    onChange?.(tag);
+    handleSearch(tag);
   };
 
-  // Get size classes
   const getSizeClasses = () => {
     switch (size) {
-      case 'sm':
-        return 'px-3 py-2 text-sm';
-      case 'lg':
-        return 'px-5 py-4 text-lg';
-      default:
-        return 'px-4 py-3';
+      case 'sm': return 'px-3 py-2 text-sm';
+      case 'lg': return 'px-5 py-4 text-lg';
+      default: return 'px-4 py-3';
     }
   };
 
-  // Get variant classes
   const getVariantClasses = () => {
     switch (variant) {
       case 'minimal':
@@ -148,8 +134,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
             ${isFocused ? 'ring-2 ring-blue-500' : ''}
           `}
         />
-        
-        {/* Clear Button */}
         {searchQuery && (
           <button
             onClick={handleClear}
@@ -160,24 +144,24 @@ const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </div>
 
-      {/* Search Suggestions */}
-      {showSuggestions && showTrending && (
+      {/* Trending Tags Dropdown — only shows when there's real data */}
+      {showSuggestions && showTrending && trendingTags.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
           <div className="p-4">
             <div className="flex items-center space-x-2 mb-3">
-              <TrendingUp className="h-4 w-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Trending Searches
+              <TrendingUp className="h-4 w-4 text-blue-500" />
+              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Trending Tags
               </span>
             </div>
-            <div className="space-y-2">
-              {trendingSearches.map((trend, index) => (
+            <div className="flex flex-wrap gap-2">
+              {trendingTags.map((tag) => (
                 <button
-                  key={index}
-                  onClick={() => handleTrendingClick(trend)}
-                  className="block w-full text-left px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  key={tag}
+                  onClick={() => handleTagClick(tag)}
+                  className="px-3 py-1.5 text-sm bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors font-medium"
                 >
-                  {trend}
+                  #{tag}
                 </button>
               ))}
             </div>

@@ -8,9 +8,12 @@ import RealtimeComments from './RealtimeComments';
 
 interface PostCardProps {
   post: Post;
+  onView?: () => void;
+  onLikeChange?: (liked: boolean) => void;
+  onSaveChange?: (saved: boolean) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onView, onLikeChange, onSaveChange }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
@@ -25,6 +28,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
     if (user) {
       checkInteractionStatus();
     }
+    // Track view for recommendations
+    onView?.();
   }, [user, post.id]);
 
   const checkInteractionStatus = async () => {
@@ -52,10 +57,12 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         await DatabaseService.unlikePost(user.id, post.id);
         setLikesCount(prev => prev - 1);
         setIsLiked(false);
+        onLikeChange?.(false);
       } else {
         await DatabaseService.likePost(user.id, post.id);
         setLikesCount(prev => prev + 1);
         setIsLiked(true);
+        onLikeChange?.(true);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -72,9 +79,11 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
       if (isSaved) {
         await DatabaseService.unsavePost(user.id, post.id);
         setIsSaved(false);
+        onSaveChange?.(false);
       } else {
         await DatabaseService.savePost(user.id, post.id);
         setIsSaved(true);
+        onSaveChange?.(true);
       }
     } catch (error) {
       console.error('Error toggling save:', error);
@@ -108,18 +117,18 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
+    <div className="glass-card rounded-2xl overflow-hidden group">
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
             onClick={() => navigate(`/user/${post.author.username}`)}
-            className="flex-shrink-0 hover:opacity-80 transition-opacity"
+            className="flex-shrink-0 hover:scale-105 transition-transform duration-300 ring-2 ring-transparent hover:ring-blue-500/50 rounded-full"
           >
             <img
               src={post.author.avatar_url || `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100`}
               alt={post.author.username}
-              className="w-10 h-10 rounded-full object-cover"
+              className="w-10 h-10 rounded-full object-cover shadow-md"
             />
           </button>
           <div>
@@ -163,13 +172,13 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
       {/* Media */}
       {post.media_urls && post.media_urls.length > 0 && (
-        <div className="relative">
+        <div className="relative overflow-hidden group">
           {post.media_type === 'image' && (
-            <div className="w-full max-w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+            <div className="w-full max-w-full overflow-hidden bg-gray-100/50 dark:bg-gray-800/50 backdrop-blur-sm">
               <img
                 src={post.media_urls[0]}
                 alt={post.title}
-                className="w-full h-auto object-contain max-h-[80vh]"
+                className="w-full h-auto object-contain max-h-[80vh] group-hover:scale-[1.02] transition-transform duration-700 ease-out"
                 style={{
                   imageRendering: '-webkit-optimize-contrast' as any
                 }}
@@ -231,9 +240,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
                     {post.media_urls.map((_, index) => (
                       <div
                         key={index}
-                        className={`w-2 h-2 rounded-full transition-colors ${
-                          index === currentImageIndex ? 'bg-white' : 'bg-white/50'
-                        }`}
+                        className={`w-2 h-2 rounded-full transition-colors ${index === currentImageIndex ? 'bg-white' : 'bg-white/50'
+                          }`}
                       />
                     ))}
                   </div>
@@ -246,19 +254,18 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
       {/* Prompt */}
       {post.prompt && (
-        <div className="p-4 bg-gray-50 dark:bg-gray-700/50 mx-4 mt-4 rounded-lg">
+        <div className="p-4 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 mx-4 mt-4 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] transition-colors duration-300 group-hover:bg-white/60 dark:group-hover:bg-gray-900/60">
           <div className="flex items-start justify-between">
-            <p className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-3">
+            <p className="text-sm text-gray-800 dark:text-gray-200 flex-1 pr-3 leading-relaxed font-inter">
               {post.prompt}
             </p>
             {post.allow_copy_prompt && (
               <button
                 onClick={handleCopyPrompt}
-                className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                  copied
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
-                }`}
+                className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${copied
+                  ? 'bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/50'
+                  : 'bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800/50 shadow-sm'
+                  }`}
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
                 <span>{copied ? 'Copied!' : 'Copy'}</span>
@@ -275,7 +282,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
             {post.tags.map((tag, index) => (
               <span
                 key={index}
-                className="px-2 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full"
+                className="px-3 py-1 text-xs font-semibold bg-gray-100/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 rounded-full hover:bg-blue-50/80 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors duration-300"
               >
                 #{tag}
               </span>
@@ -290,9 +297,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
           <button
             onClick={handleLike}
             disabled={loading}
-            className={`flex items-center space-x-2 transition-colors disabled:opacity-50 ${
-              isLiked ? 'text-red-500' : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-            }`}
+            className={`flex items-center space-x-2 transition-all duration-300 hover:scale-110 active:scale-90 disabled:opacity-50 ${isLiked ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
+              }`}
           >
             <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
             <span className="text-sm font-medium">{likesCount}</span>
@@ -300,7 +306,7 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
 
           <button
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-colors"
+            className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110 active:scale-90"
           >
             <MessageCircle size={20} />
             <span className="text-sm font-medium">{post.comments_count}</span>
@@ -310,9 +316,8 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <button
           onClick={handleSave}
           disabled={loading}
-          className={`transition-colors disabled:opacity-50 ${
-            isSaved ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400 hover:text-blue-500'
-          }`}
+          className={`transition-all duration-300 hover:scale-110 active:scale-90 disabled:opacity-50 ${isSaved ? 'text-blue-500 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]' : 'text-gray-600 dark:text-gray-400 hover:text-blue-500'
+            }`}
         >
           <Bookmark size={20} fill={isSaved ? 'currentColor' : 'none'} />
         </button>

@@ -4,14 +4,24 @@ import ReelCard from '../components/ReelCard';
 import { DatabaseService } from '../services/database';
 import { Reel } from '../types';
 import { Loader } from 'lucide-react';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 const Reels: React.FC = () => {
   const location = useLocation();
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
   const [reels, setReels] = useState<Reel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const bottomSentinelRef = useRef<HTMLDivElement>(null);
+  const isBottomVisible = useIntersectionObserver(bottomSentinelRef, {
+    root: containerRef.current,
+    threshold: 0.1,
+    rootMargin: '200px', // Pre-load slightly before hitting bottom
+  });
 
   useEffect(() => {
     loadReels();
@@ -35,21 +45,41 @@ const Reels: React.FC = () => {
     }
   }, [reels, location.state]);
 
-  const loadReels = async () => {
-    setLoading(true);
+  const loadReels = async (offset = 0) => {
+    if (offset === 0) setLoading(true);
+    else setLoadingMore(true);
+
     setError('');
+
     try {
-      console.log('🎬 Loading reels from database...');
-      const reelsData = await DatabaseService.getReels(20, 0);
+      console.log('🎬 Loading reels from database...', { offset });
+      const reelsData = await DatabaseService.getReels(10, offset); // Load in batches of 10
       console.log('✅ Reels loaded:', { count: reelsData.length, reels: reelsData });
-      setReels(reelsData);
+
+      if (offset === 0) {
+        setReels(reelsData);
+      } else {
+        setReels(prev => [...prev, ...reelsData]);
+      }
+
+      // Update hasMore
+      if (reelsData.length < 10) {
+        setHasMore(false);
+      }
     } catch (error: any) {
       console.error('❌ Error loading reels:', error);
       setError('Failed to load reels. Please try again.');
     } finally {
       setLoading(false);
+      setLoadingMore(false);
     }
   };
+
+  useEffect(() => {
+    if (isBottomVisible && hasMore && !loading && !loadingMore && reels.length > 0) {
+      loadReels(reels.length);
+    }
+  }, [isBottomVisible, hasMore, loading, loadingMore, reels.length]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -122,13 +152,33 @@ const Reels: React.FC = () => {
         `}</style>
 
         {reels.map((reel, index) => (
-          <div key={reel.id} className="snap-start">
+          <div key={reel.id} className="snap-start relative">
             <ReelCard
               reel={reel}
               isVisible={index === currentReelIndex}
             />
           </div>
         ))}
+
+        {/* Infinite Loading Sentinel */}
+        {reels.length > 0 && (
+          <div ref={bottomSentinelRef} className="snap-start h-screen w-full flex items-center justify-center bg-black">
+            {loadingMore ? (
+              <div className="flex flex-col items-center justify-center space-y-3">
+                <Loader className="w-8 h-8 animate-spin text-white" />
+                <span className="text-white text-lg">Loading more reels...</span>
+              </div>
+            ) : !hasMore ? (
+              <div className="flex flex-col items-center justify-center text-center px-4">
+                <p className="text-white text-xl font-bold mb-2">You're caught up!</p>
+                <p className="text-gray-400">You've seen all the reels.</p>
+              </div>
+            ) : (
+              // Invisible sentinel that triggers intersection observer when scrolled near
+              <div className="h-4 w-full opacity-0 pointer-events-none"></div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Reel indicator */}

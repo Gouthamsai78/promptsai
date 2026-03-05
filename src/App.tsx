@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { OnboardingProvider } from './contexts/OnboardingContext';
@@ -97,25 +97,25 @@ const AppRoutes = () => {
           }
         />
 
-        {/* Protected routes with Navigation */}
+        {/* Public routes with Navigation */}
         <Route
           path="/"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <Home />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
           path="/reels"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <Reels />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
@@ -131,11 +131,11 @@ const AppRoutes = () => {
         <Route
           path="/explore"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <Explore />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
@@ -161,21 +161,21 @@ const AppRoutes = () => {
         <Route
           path="/ai-chat"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <AIChat />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
           path="/communities"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <Communities />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
@@ -212,21 +212,21 @@ const AppRoutes = () => {
         <Route
           path="/transform"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <PromptTransformationDemo />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
           path="/search"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <Search />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route
@@ -242,11 +242,11 @@ const AppRoutes = () => {
         <Route
           path="/user/:username"
           element={
-            <ProtectedRoute>
+            <>
               <OfflineModeIndicator />
               <Navigation />
               <UserProfile />
-            </ProtectedRoute>
+            </>
           }
         />
         <Route

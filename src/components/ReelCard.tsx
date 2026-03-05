@@ -10,9 +10,12 @@ interface ReelCardProps {
   reel: Reel;
   isVisible: boolean;
   isInFeed?: boolean; // New prop to indicate if reel is in home feed
+  onView?: () => void;
+  onLikeChange?: (liked: boolean) => void;
+  onSaveChange?: (saved: boolean) => void;
 }
 
-const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }) => {
+const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false, onView, onLikeChange, onSaveChange }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLiked, setIsLiked] = useState(false);
@@ -36,6 +39,8 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
     if (user) {
       checkInteractionStatus();
     }
+    // Track view for recommendations
+    onView?.();
   }, [user, reel.id]);
 
   useEffect(() => {
@@ -156,10 +161,12 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
         await DatabaseService.unlikeReel(user.id, reel.id);
         setLikesCount(prev => Math.max(0, prev - 1));
         setIsLiked(false);
+        onLikeChange?.(false);
       } else {
         await DatabaseService.likeReel(user.id, reel.id);
         setLikesCount(prev => prev + 1);
         setIsLiked(true);
+        onLikeChange?.(true);
       }
     } catch (error) {
       console.error('Error toggling like:', error);
@@ -176,9 +183,11 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
       if (isSaved) {
         await DatabaseService.unsaveReel(user.id, reel.id);
         setIsSaved(false);
+        onSaveChange?.(false);
       } else {
         await DatabaseService.saveReel(user.id, reel.id);
         setIsSaved(true);
+        onSaveChange?.(true);
       }
     } catch (error) {
       console.error('Error toggling save:', error);
@@ -259,18 +268,18 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
   // Feed mode - PostCard-style layout
   if (isInFeed) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-700">
+      <div className="glass-card rounded-2xl overflow-hidden group">
         {/* Header */}
         <div className="p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => navigate(`/user/${reel.author.username}`)}
-              className="flex-shrink-0 hover:opacity-80 transition-opacity"
+              className="flex-shrink-0 hover:scale-105 transition-transform duration-300 ring-2 ring-transparent hover:ring-blue-500/50 rounded-full"
             >
               <img
                 src={reel.author.avatar_url || `https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?auto=compress&cs=tinysrgb&w=100`}
                 alt={reel.author.username}
-                className="w-10 h-10 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover shadow-md"
               />
             </button>
             <div>
@@ -299,7 +308,7 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="px-2 py-1 text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded-full">
+            <span className="px-3 py-1 text-xs font-semibold bg-purple-50/80 dark:bg-purple-900/40 text-purple-700 dark:text-purple-400 rounded-full border border-purple-200/50 dark:border-purple-800/50 shadow-sm">
               🎬 Reel
             </span>
           </div>
@@ -340,19 +349,18 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
 
         {/* Prompt */}
         {reel.prompt && (
-          <div className="p-4 bg-gray-50 dark:bg-gray-700/50 mx-4 mt-4 rounded-lg">
+          <div className="p-4 bg-white/40 dark:bg-gray-900/40 backdrop-blur-md border border-gray-200/50 dark:border-gray-700/50 mx-4 mt-4 rounded-xl shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)] transition-colors duration-300 group-hover:bg-white/60 dark:group-hover:bg-gray-900/60">
             <div className="flex items-start justify-between">
-              <p className="text-sm text-gray-700 dark:text-gray-300 flex-1 pr-3">
+              <p className="text-sm text-gray-800 dark:text-gray-200 flex-1 pr-3 leading-relaxed font-inter">
                 {reel.prompt}
               </p>
               {reel.allow_copy_prompt && (
                 <button
                   onClick={handleCopyPrompt}
-                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                    copied
-                      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                      : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
-                  }`}
+                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 hover:scale-105 active:scale-95 shadow-sm ${copied
+                    ? 'bg-green-100/80 dark:bg-green-900/40 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/50'
+                    : 'bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 border border-gray-200/50 dark:border-gray-700/50 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 hover:border-blue-200 dark:hover:border-blue-800/50 shadow-sm'
+                    }`}
                 >
                   {copied ? <Check size={14} /> : <Copy size={14} />}
                   <span>{copied ? 'Copied!' : 'Copy'}</span>
@@ -384,9 +392,8 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
             <button
               onClick={handleLike}
               disabled={loading}
-              className={`flex items-center space-x-2 transition-colors disabled:opacity-50 ${
-                isLiked ? 'text-red-500' : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
-              }`}
+              className={`flex items-center space-x-2 transition-all duration-300 hover:scale-110 active:scale-90 disabled:opacity-50 ${isLiked ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-gray-600 dark:text-gray-400 hover:text-red-500'
+                }`}
             >
               <Heart size={20} fill={isLiked ? 'currentColor' : 'none'} />
               <span className="text-sm font-medium">{likesCount}</span>
@@ -411,9 +418,8 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
           <button
             onClick={handleSave}
             disabled={loading}
-            className={`transition-colors disabled:opacity-50 ${
-              isSaved ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400 hover:text-blue-500'
-            }`}
+            className={`transition-colors disabled:opacity-50 ${isSaved ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400 hover:text-blue-500'
+              }`}
           >
             <Bookmark size={20} fill={isSaved ? 'currentColor' : 'none'} />
           </button>
@@ -518,11 +524,10 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
               <button
                 onClick={handleFollow}
                 disabled={followLoading}
-                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 disabled:opacity-50 ${
-                  isFollowing
-                    ? 'bg-gray-600 text-white hover:bg-gray-700'
-                    : 'bg-white text-black hover:bg-gray-100'
-                }`}
+                className={`px-4 py-2 rounded-full font-medium transition-all duration-200 disabled:opacity-50 ${isFollowing
+                  ? 'bg-gray-600 text-white hover:bg-gray-700'
+                  : 'bg-white text-black hover:bg-gray-100'
+                  }`}
               >
                 {followLoading ? (
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
@@ -557,9 +562,8 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
         <button
           onClick={handleLike}
           disabled={loading}
-          className={`flex flex-col items-center space-y-1 transition-transform hover:scale-110 disabled:opacity-50 ${
-            isLiked ? 'text-red-500' : 'text-white'
-          }`}
+          className={`flex flex-col items-center space-y-1 transition-all duration-300 hover:scale-110 active:scale-90 disabled:opacity-50 ${isLiked ? 'text-red-500 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]' : 'text-white'
+            }`}
         >
           <div className="p-3 bg-white/20 backdrop-blur-sm rounded-full">
             <Heart size={24} fill={isLiked ? 'currentColor' : 'none'} />
@@ -570,7 +574,7 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
         {/* Comments Button */}
         <button
           onClick={() => setShowComments(!showComments)}
-          className="flex flex-col items-center space-y-1 text-white transition-transform hover:scale-110"
+          className="flex flex-col items-center space-y-1 text-white transition-all duration-300 hover:scale-110 active:scale-90"
         >
           <div className="p-3 bg-white/20 backdrop-blur-sm rounded-full">
             <MessageCircle size={24} />
@@ -582,9 +586,8 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
         <button
           onClick={handleSave}
           disabled={loading}
-          className={`flex flex-col items-center space-y-1 transition-transform hover:scale-110 disabled:opacity-50 ${
-            isSaved ? 'text-yellow-400' : 'text-white'
-          }`}
+          className={`flex flex-col items-center space-y-1 transition-all duration-300 hover:scale-110 active:scale-90 disabled:opacity-50 ${isSaved ? 'text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : 'text-white'
+            }`}
         >
           <div className="p-3 bg-white/20 backdrop-blur-sm rounded-full">
             <Bookmark size={24} fill={isSaved ? 'currentColor' : 'none'} />
@@ -596,9 +599,8 @@ const ReelCard: React.FC<ReelCardProps> = ({ reel, isVisible, isInFeed = false }
         {reel.allow_copy_prompt && (
           <button
             onClick={handleCopyPrompt}
-            className={`flex flex-col items-center space-y-1 transition-all duration-200 hover:scale-110 ${
-              copied ? 'text-green-400' : 'text-white'
-            }`}
+            className={`flex flex-col items-center space-y-1 transition-all duration-200 hover:scale-110 ${copied ? 'text-green-400' : 'text-white'
+              }`}
           >
             <div className="p-3 bg-white/20 backdrop-blur-sm rounded-full">
               {copied ? <Check size={24} /> : <Copy size={24} />}

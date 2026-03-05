@@ -878,4 +878,43 @@ export class DatabaseService {
       })) as Post[];
   }
 
+  /**
+   * Get trending tags from the most recent published posts.
+   * Counts tag occurrences across the latest posts and returns the top ones.
+   */
+  static async getTrendingTags(limit: number = 8): Promise<string[]> {
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('tags')
+        .eq('status', 'published')
+        .order('created_at', { ascending: false })
+        .limit(100); // Sample the latest 100 posts
+
+      if (error) throw error;
+      if (!data || data.length === 0) return [];
+
+      // Count tag frequency
+      const tagCounts: Record<string, number> = {};
+      for (const post of data) {
+        const tags: string[] = post.tags || [];
+        for (const tag of tags) {
+          const normalized = tag.trim();
+          if (normalized) {
+            tagCounts[normalized] = (tagCounts[normalized] || 0) + 1;
+          }
+        }
+      }
+
+      // Sort by frequency descending, return top N
+      return Object.entries(tagCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([tag]) => tag);
+    } catch (error) {
+      console.error('Error fetching trending tags:', error);
+      return [];
+    }
+  }
+
 }
